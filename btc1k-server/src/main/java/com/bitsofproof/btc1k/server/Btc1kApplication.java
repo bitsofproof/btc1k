@@ -1,6 +1,6 @@
 package com.bitsofproof.btc1k.server;
 
-import com.bitsofproof.btc1k.server.resource.SomeResource;
+import com.bitsofproof.btc1k.server.resource.BopShopResource;
 import com.bitsofproof.dropwizard.supernode.SupernodeBundle;
 import com.bitsofproof.dropwizard.supernode.SupernodeConfiguration;
 import com.bitsofproof.supernode.api.BCSAPI;
@@ -38,6 +38,6 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 	{
 		BCSAPI api = supernodeBundle.getBCSAPI ();
 
-		environment.jersey ().register (new SomeResource ());
+		environment.jersey ().register (new BopShopResource ());
 	}
 }
