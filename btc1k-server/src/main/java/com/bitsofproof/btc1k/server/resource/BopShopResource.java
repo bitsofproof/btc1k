@@ -9,13 +9,14 @@ import javax.ws.rs.core.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path ("/tickets")
+@Path ("/btc1k")
 @Produces (MediaType.APPLICATION_JSON)
 @Consumes (MediaType.APPLICATION_JSON)
 public class BopShopResource
 {
 	private static final Logger log = LoggerFactory.getLogger (BopShopResource.class);
 
+	@Path ("/payment")
 	@POST
 	public void callback (BopShopCallback callback)
 	{

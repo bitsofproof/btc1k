@@ -1,6 +1,6 @@
 package com.bitsofproof.btc1k.server.resource;
 
-import org.json.JSONObject;
+import java.util.Map;
 
 public class BopShopCallback
 {
@@ -12,7 +12,7 @@ public class BopShopCallback
 	private Long requiredConfirmations;
 	private String transactionHash;
 	private BopShopCallbackReason reason;
-	private JSONObject callbackParameters;
+	private Map<String, Object> callbackParameters;
 
 	public String getPaymentRequestId ()
 	{
@@ -94,12 +94,12 @@ public class BopShopCallback
 		this.reason = reason;
 	}
 
-	public JSONObject getCallbackParameters ()
+	public Map<String, Object> getCallbackParameters ()
 	{
 		return callbackParameters;
 	}
 
-	public void setCallbackParameters (JSONObject callbackParameters)
+	public void setCallbackParameters (Map<String, Object> callbackParameters)
 	{
 		this.callbackParameters = callbackParameters;
 	}

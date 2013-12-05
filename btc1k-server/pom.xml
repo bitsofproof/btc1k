@@ -149,7 +149,7 @@
 							<transformers>
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer" />
 								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>com.bitsofproof.btc1k.server.Application</mainClass>
+									<mainClass>com.bitsofproof.btc1k.server.Btc1kApplication</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>

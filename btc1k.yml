@@ -3,7 +3,7 @@ supernode:
 
 server:
   applicationConnectors:
-    - type: http
+    - type: https
       port: 8280
 #    - type: https
 #      port: 8443
