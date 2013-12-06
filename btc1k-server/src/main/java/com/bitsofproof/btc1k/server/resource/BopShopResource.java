@@ -70,8 +70,7 @@ public class BopShopResource
 	private final int customerId;
 	private final String password;
 
-	public BopShopResource (BCSAPI api, ExtendedKey master, ECPublicKey key1, ECPublicKey key2, ECPublicKey key3, int customerId, String password,
-			String request)
+	public BopShopResource (BCSAPI api, ExtendedKey master, ECPublicKey key1, ECPublicKey key2, ECPublicKey key3, int customerId, String password)
 			throws ValidationException
 	{
 		this.master = master;
@@ -81,10 +80,6 @@ public class BopShopResource
 		this.customerId = customerId;
 		this.password = password;
 		log.info ("Vault address is " + target);
-		if ( request != null )
-		{
-			processRequest (request);
-		}
 	}
 
 	private Address getTwoOfThreeAddress (ECPublicKey key1, ECPublicKey key2, ECPublicKey key3) throws ValidationException

@@ -22,6 +22,7 @@ import com.bitsofproof.dropwizard.supernode.activemq.SupernodeConfigurationImpl;
 import com.bitsofproof.supernode.common.ByteUtils;
 import com.bitsofproof.supernode.common.ECPublicKey;
 import com.bitsofproof.supernode.common.ExtendedKey;
+import com.bitsofproof.supernode.common.ValidationException;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Btc1kConfiguration extends Configuration
@@ -31,12 +32,11 @@ public class Btc1kConfiguration extends Configuration
 
 	private String key1, key2, key3;
 
-	private String masterSeed;
+	private String masterKey;
 
 	private Integer customerId;
-	private String password;
 
-	private String paymentRequest;
+	private String passphrase;
 
 	public SupernodeConfiguration getSupernode ()
 	{
@@ -58,9 +58,9 @@ public class Btc1kConfiguration extends Configuration
 		return new ECPublicKey (ByteUtils.fromHex (key3), true);
 	}
 
-	public ExtendedKey getMasterSeed ()
+	public ExtendedKey getMasterKey () throws ValidationException
 	{
-		return new EncryptedMasterInitializer (masterSeed).initializeMasterKey ();
+		return ExtendedKey.parse (masterKey);
 	}
 
 	public Integer getCustomerId ()
@@ -68,14 +68,9 @@ public class Btc1kConfiguration extends Configuration
 		return customerId;
 	}
 
-	public String getPassword ()
+	public String getPassphrase ()
 	{
-		return password;
-	}
-
-	public String getPaymentRequest ()
-	{
-		return paymentRequest;
+		return passphrase;
 	}
 
 }
