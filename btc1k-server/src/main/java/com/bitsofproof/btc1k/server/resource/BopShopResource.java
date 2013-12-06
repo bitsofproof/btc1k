@@ -144,9 +144,7 @@ public class BopShopResource
 			vault.setValue (amount - FEE - mB);
 			transaction.getOutputs ().add (vault);
 			TransactionOutput ticket = new TransactionOutput ();
-			ticket.setScript (Address.fromSatoshiStyle ("1KPdBACuF3Ji7gMB7Zp6sn7n4LrCra988e"
-					// request.getTitle ()
-					).getAddressScript ());
+			ticket.setScript (Address.fromSatoshiStyle (request.getTitle ()).getAddressScript ());
 			ticket.setValue (mB);
 			transaction.getOutputs ().add (ticket);
 
