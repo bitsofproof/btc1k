@@ -159,7 +159,7 @@ public class BopShopResource
 			input.setScript (sw.toByteArray ());
 		}
 		transaction.computeHash ();
-		log.info ("Ticket issued with " + transaction.getHash () + " for " + request.getId ());
+		log.info ("Ticket issued with " + transaction.getHash () + " for " + request.getId () + " address " + request.getTitle ());
 		api.sendTransaction (transaction);
 	}
 
