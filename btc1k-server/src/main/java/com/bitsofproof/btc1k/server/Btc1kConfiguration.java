@@ -15,14 +15,13 @@
  */
 package com.bitsofproof.btc1k.server;
 
-import io.dropwizard.Configuration;
-
 import com.bitsofproof.dropwizard.supernode.SupernodeConfiguration;
 import com.bitsofproof.dropwizard.supernode.activemq.SupernodeConfigurationImpl;
 import com.bitsofproof.supernode.common.ByteUtils;
 import com.bitsofproof.supernode.common.ECPublicKey;
 import com.bitsofproof.supernode.common.ExtendedKey;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.dropwizard.Configuration;
 
 public class Btc1kConfiguration extends Configuration
 {
@@ -60,7 +59,8 @@ public class Btc1kConfiguration extends Configuration
 
 	public ExtendedKey getMasterSeed ()
 	{
-		return new EncryptedMasterInitializer (masterSeed).initializeMasterKey ();
+		//return new EncryptedMasterInitializer (masterSeed).initializeMasterKey ();
+		return null;
 	}
 
 	public Integer getCustomerId ()

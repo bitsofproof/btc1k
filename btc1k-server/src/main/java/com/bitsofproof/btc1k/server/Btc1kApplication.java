@@ -15,21 +15,30 @@
  */
 package com.bitsofproof.btc1k.server;
 
+import com.bitsofproof.btc1k.server.resource.BopShopResource;
+import com.bitsofproof.btc1k.server.vault.Vault;
+import com.bitsofproof.dropwizard.supernode.SupernodeBundle;
+import com.bitsofproof.dropwizard.supernode.SupernodeConfiguration;
+import com.bitsofproof.supernode.api.BCSAPI;
+import com.bitsofproof.supernode.api.BCSAPIException;
+import com.bitsofproof.supernode.api.Transaction;
+import com.bitsofproof.supernode.api.TransactionOutput;
+import com.bitsofproof.supernode.common.ValidationException;
 import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
-
-import java.security.Security;
-
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.bitsofproof.btc1k.server.resource.BopShopResource;
-import com.bitsofproof.dropwizard.supernode.SupernodeBundle;
-import com.bitsofproof.dropwizard.supernode.SupernodeConfiguration;
+import java.math.BigDecimal;
+import java.security.Security;
 
 public class Btc1kApplication extends Application<Btc1kConfiguration>
 {
-	private final SupernodeBundle<Btc1kConfiguration> supernodeBundle = new SupernodeBundle<Btc1kConfiguration> ()
+	private static final Logger log = LoggerFactory.getLogger(Btc1kApplication.class);
+
+	private SupernodeBundle<Btc1kConfiguration> supernodeBundle = new SupernodeBundle<Btc1kConfiguration> ()
 	{
 		@Override
 		protected SupernodeConfiguration getSupernodeConfiguration (Btc1kConfiguration configuration)
@@ -37,6 +46,8 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 			return configuration.getSupernode ();
 		}
 	};
+
+	private Vault vault;
 
 	public static void main (String[] args) throws Exception
 	{
@@ -53,16 +64,40 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 	@Override
 	public void run (Btc1kConfiguration configuration, Environment environment) throws Exception
 	{
+		BCSAPI api = supernodeBundle.getBCSAPI ();
+		vault = Vault.create (configuration.getKey1 (), configuration.getKey2 (), configuration.getKey3 ());
+		api.registerTransactionListener (vault);
+
 		environment.jersey ().register (new BopShopResource (
 				supernodeBundle.getBCSAPI (),
+				vault,
 				configuration.getMasterSeed (),
-				configuration.getKey1 (),
-				configuration.getKey2 (),
-				configuration.getKey3 (),
 				configuration.getCustomerId (),
 				configuration.getPassword (),
 				configuration.getPaymentRequest ()
 				));
 
+		fundVaultForTesting ();
+	}
+
+	private void fundVaultForTesting () throws ValidationException, BCSAPIException, InterruptedException
+	{
+		Helper h = new Helper(supernodeBundle.getBox (), vault.getTwoOfThreeAddress ());
+		h.fundVault (BigDecimal.valueOf (20));
+
+		Thread.sleep (1000);
+		log.info ("Start synchronizing account manager. This might take a while");
+		//vault.syncHistory (api);
+
+		log.info("Querying account manager transactions {}", vault.getBalance ());
+		for (Transaction tx : vault.getAccountManager ().getTransactions ())
+		{
+			tx.computeHash ();
+			log.info ("    tx {}", tx.getHash ());
+			for (TransactionOutput output : tx.getOutputs ())
+			{
+				log.info ("        {}", output.getValue ());
+			}
+		}
 	}
 }
