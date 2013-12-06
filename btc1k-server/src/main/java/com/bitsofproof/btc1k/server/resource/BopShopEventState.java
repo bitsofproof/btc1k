@@ -15,7 +15,7 @@
  */
 package com.bitsofproof.btc1k.server.resource;
 
-public enum BopShopCallbackReason
+public enum BopShopEventState
 {
-	SETTLED, ALERT, PAID, TIMEOUT
+	WAITING_FOR_DELIVERY, DELIVERY_STARTED, DELIVERY_FAILED, DELIVERED
 }

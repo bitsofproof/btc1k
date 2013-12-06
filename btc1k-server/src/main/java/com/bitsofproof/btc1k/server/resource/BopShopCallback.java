@@ -1,10 +1,27 @@
+/*
+ * Copyright 2013 bits of proof zrt.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.bitsofproof.btc1k.server.resource;
 
+import java.util.List;
 import java.util.Map;
 
 public class BopShopCallback
 {
 	private String paymentRequestId;
+	private String title;
 	private Long paidAmount;
 	private Long requestedAmount;
 	private Long confirmations;
@@ -12,7 +29,9 @@ public class BopShopCallback
 	private Long requiredConfirmations;
 	private String transactionHash;
 	private BopShopCallbackReason reason;
+	private Integer child;
 	private Map<String, Object> callbackParameters;
+	private List<BopShopEvent> events;
 
 	public String getPaymentRequestId ()
 	{
@@ -22,6 +41,26 @@ public class BopShopCallback
 	public void setPaymentRequestId (String paymentRequestId)
 	{
 		this.paymentRequestId = paymentRequestId;
+	}
+
+	public String getTitle ()
+	{
+		return title;
+	}
+
+	public void setTitle (String title)
+	{
+		this.title = title;
+	}
+
+	public List<BopShopEvent> getEvents ()
+	{
+		return events;
+	}
+
+	public void setEvents (List<BopShopEvent> events)
+	{
+		this.events = events;
 	}
 
 	public Long getPaidAmount ()
@@ -108,5 +147,15 @@ public class BopShopCallback
 	public String toString ()
 	{
 		return paymentRequestId;
+	}
+
+	public Integer getChild ()
+	{
+		return child;
+	}
+
+	public void setChild (Integer child)
+	{
+		this.child = child;
 	}
 }
