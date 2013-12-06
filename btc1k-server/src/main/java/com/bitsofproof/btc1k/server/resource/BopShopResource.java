@@ -58,8 +58,7 @@ public class BopShopResource
 
 	private final Vault vault;
 
-	public BopShopResource (BCSAPI api, Vault vault, ExtendedKey master, int customerId, String password, String request)
-			throws ValidationException
+	public BopShopResource (BCSAPI api, Vault vault, ExtendedKey master, int customerId, String password) throws ValidationException
 	{
 		this.master = master;
 		this.vault = vault;
@@ -67,11 +66,8 @@ public class BopShopResource
 		client = HttpClientBuilder.create ().build ();
 		this.customerId = customerId;
 		this.password = password;
+
 		log.info ("Vault address is " + vault.getTwoOfThreeAddress ());
-		if ( request != null )
-		{
-			processRequest (request);
-		}
 	}
 
 	@Path ("/payment")
