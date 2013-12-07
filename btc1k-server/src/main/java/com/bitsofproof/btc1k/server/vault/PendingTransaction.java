@@ -1,17 +1,23 @@
 package com.bitsofproof.btc1k.server.vault;
 
+import com.bitsofproof.supernode.api.Address;
 import com.bitsofproof.supernode.api.Transaction;
 import org.joda.time.DateTime;
 
+import java.math.BigDecimal;
 import java.util.UUID;
 
 public class PendingTransaction implements Comparable<PendingTransaction>
 {
+	private Address targetAddress;
+
 	private UUID id;
 
 	private Transaction transaction;
 
 	private String title;
+
+	private BigDecimal amount;
 
 	private DateTime createdAt;
 
@@ -19,11 +25,13 @@ public class PendingTransaction implements Comparable<PendingTransaction>
 	{
 	}
 
-	public PendingTransaction (Transaction transaction, String title)
+	public PendingTransaction (Transaction transaction, BigDecimal amount, Address targetAddress, String title)
 	{
 		this.id = UUID.randomUUID ();
 		this.transaction = transaction;
 		this.title = title;
+		this.amount = amount;
+		this.targetAddress = targetAddress;
 		this.createdAt = DateTime.now ();
 	}
 
@@ -55,6 +63,16 @@ public class PendingTransaction implements Comparable<PendingTransaction>
 	public UUID getId ()
 	{
 		return id;
+	}
+
+	public BigDecimal getAmount ()
+	{
+		return amount;
+	}
+
+	public Address getTargetAddress ()
+	{
+		return targetAddress;
 	}
 
 	@Override

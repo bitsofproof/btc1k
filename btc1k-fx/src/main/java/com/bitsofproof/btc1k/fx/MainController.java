@@ -120,12 +120,13 @@ public class MainController
 			}
 		};
 
-		RestClient.RestTask task = App.instance.restClient.submitRestCall ("Sending new transaction", callback);
+		final RestClient.RestTask<ClientResponse> task = App.instance.restClient.submitRestCall ("Sending new transaction", callback);
 		// TODO restclient is singlethreaded. Should be better to simply call refreshTransactionList, which will schedule the refresh task in the rest executor?
 		task.setOnSucceeded (new EventHandler<WorkerStateEvent> ()
 		{
 			public void handle (WorkerStateEvent workerStateEvent)
 			{
+				ClientResponse response = task.getValue ();
 				refreshTransactionList ();
 			}
 		});

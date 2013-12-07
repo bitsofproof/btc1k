@@ -1,7 +1,6 @@
 package com.bitsofproof.btc1k.fx;
 
 import com.bitsofproof.btc1k.server.vault.PendingTransaction;
-import com.bitsofproof.supernode.api.TransactionOutput;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -11,10 +10,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
-
 import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.List;
 
 public class PendingTransactionEntry extends HBox
 {
@@ -66,16 +62,8 @@ public class PendingTransactionEntry extends HBox
 	private void updateValues ()
 	{
 		PendingTransaction pt = pendingTransaction.get ();
-
-		pt.getCreatedAt ();
-		List<TransactionOutput> outputs = pt.getTransaction ().getOutputs ();
-		BigDecimal sum = BigDecimal.ZERO.setScale (4);
-		for (TransactionOutput output : outputs)
-		{
-			sum = sum.add(BigDecimal.valueOf(output.getValue ()));
-		}
-
-		amountLabel.setText (sum.toString ());
+		amountLabel.setText (pt.getAmount ().movePointLeft (8).toPlainString ());
+		addressLabel.setText (pt.getTargetAddress ().toString ());
 		createdAtLabel.setText (pt.getCreatedAt ().toString ());
 	}
 

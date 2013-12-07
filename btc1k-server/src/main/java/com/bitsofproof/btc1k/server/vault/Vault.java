@@ -1,19 +1,6 @@
 package com.bitsofproof.btc1k.server.vault;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-import org.joda.time.DateTime;
-
-import com.bitsofproof.supernode.api.Address;
-import com.bitsofproof.supernode.api.BCSAPI;
-import com.bitsofproof.supernode.api.BCSAPIException;
-import com.bitsofproof.supernode.api.Network;
-import com.bitsofproof.supernode.api.Transaction;
-import com.bitsofproof.supernode.api.TransactionListener;
-import com.bitsofproof.supernode.api.TransactionOutput;
+import com.bitsofproof.supernode.api.*;
 import com.bitsofproof.supernode.common.Hash;
 import com.bitsofproof.supernode.common.Key;
 import com.bitsofproof.supernode.common.ScriptFormat;
@@ -22,6 +9,12 @@ import com.bitsofproof.supernode.wallet.AddressListAccountManager;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import org.joda.time.DateTime;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class Vault implements TransactionListener
 {
@@ -106,7 +99,7 @@ public class Vault implements TransactionListener
 	public PendingTransaction createTransaction (Address targetAddress, BigDecimal btcAmount) throws ValidationException
 	{
 		Transaction tx = accountManager.pay (targetAddress, btcAmount.longValue (), true);
-		PendingTransaction pendingTransaction = new PendingTransaction (tx, "");
+		PendingTransaction pendingTransaction = new PendingTransaction (tx, btcAmount, targetAddress, "");
 
 		pendingTransactions.put (pendingTransaction.getId (), pendingTransaction);
 		return pendingTransaction;

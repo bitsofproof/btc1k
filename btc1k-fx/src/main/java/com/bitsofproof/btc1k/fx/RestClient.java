@@ -83,8 +83,7 @@ public class RestClient
 	public <T> RestTask<T> submitRestCall (String title, Callback<WebResource, T> callback)
 	{
 
-		RestTask task = new RestTask (title, callback);
-		return task;
+		return new RestTask (title, callback);
 	}
 
 	public RestTask getCurrentTask ()
