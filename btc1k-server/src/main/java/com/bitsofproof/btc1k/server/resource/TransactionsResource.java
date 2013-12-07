@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.UUID;
 
+import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
@@ -46,6 +47,13 @@ public class TransactionsResource
 	public PendingTransaction showTransaction (@PathParam ("txId") UUID id)
 	{
 		return vault.getPendingTransaction (id);
+	}
+
+	@Path ("/{txId}")
+	@DELETE
+	public PendingTransaction deleteTransaction (@PathParam ("txId") UUID id)
+	{
+		return vault.deletePendingTransaction (id);
 	}
 
 	@Path ("/{txId}")

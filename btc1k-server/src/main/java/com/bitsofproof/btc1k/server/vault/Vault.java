@@ -144,4 +144,9 @@ public class Vault implements TransactionListener
 		api.sendTransaction (transaction.getTransaction ());
 		pendingTransactions.remove (transaction.getId ());
 	}
+
+	public PendingTransaction deletePendingTransaction (UUID id)
+	{
+		return pendingTransactions.remove (id);
+	}
 }
