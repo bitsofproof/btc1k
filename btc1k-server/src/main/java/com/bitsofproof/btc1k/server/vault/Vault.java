@@ -91,9 +91,19 @@ public class Vault
 		accountManager.setCreated (new DateTime (2013, 12, 7, 0, 0).getMillis ());
 	}
 
+	private static long toSatoshi (BigDecimal btc)
+	{
+		return btc.movePointRight (8).longValue ();
+	}
+
+	private BigDecimal fromSatoshi (long amount)
+	{
+		return BigDecimal.valueOf (amount).movePointLeft (8);
+	}
+
 	public PendingTransaction createTransaction (Address targetAddress, BigDecimal btcAmount) throws ValidationException
 	{
-		Transaction tx = accountManager.pay (targetAddress, btcAmount.longValue (), true);
+		Transaction tx = accountManager.pay (targetAddress, toSatoshi (btcAmount), true);
 		PendingTransaction pendingTransaction = new PendingTransaction (tx, btcAmount, targetAddress, "");
 
 		pendingTransactions.put (pendingTransaction.getId (), pendingTransaction);
