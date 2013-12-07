@@ -162,6 +162,7 @@ public class Vault
 					names.add (name);
 				}
 			}
+			break;
 		}
 		return names;
 	}
