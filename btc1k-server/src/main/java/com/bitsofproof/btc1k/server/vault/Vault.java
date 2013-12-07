@@ -1,19 +1,27 @@
 package com.bitsofproof.btc1k.server.vault;
 
-import com.bitsofproof.supernode.api.*;
-import com.bitsofproof.supernode.common.*;
-import com.bitsofproof.supernode.wallet.AddressListAccountManager;
-import com.google.common.base.Preconditions;
-import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import com.google.common.collect.Ordering;
-import org.fusesource.hawtdispatch.OrderedEventAggregator;
-
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+
+import org.joda.time.DateTime;
+
+import com.bitsofproof.supernode.api.Address;
+import com.bitsofproof.supernode.api.BCSAPI;
+import com.bitsofproof.supernode.api.BCSAPIException;
+import com.bitsofproof.supernode.api.Network;
+import com.bitsofproof.supernode.api.Transaction;
+import com.bitsofproof.supernode.api.TransactionListener;
+import com.bitsofproof.supernode.api.TransactionOutput;
+import com.bitsofproof.supernode.common.Hash;
+import com.bitsofproof.supernode.common.Key;
+import com.bitsofproof.supernode.common.ScriptFormat;
+import com.bitsofproof.supernode.common.ValidationException;
+import com.bitsofproof.supernode.wallet.AddressListAccountManager;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
 
 public class Vault implements TransactionListener
 {
@@ -38,7 +46,7 @@ public class Vault implements TransactionListener
 
 	private final AM accountManager;
 
-	private Map<UUID, PendingTransaction> pendingTransactions = Maps.newConcurrentMap ();
+	private final Map<UUID, PendingTransaction> pendingTransactions = Maps.newConcurrentMap ();
 
 	private final byte[] customerScript;
 
@@ -46,14 +54,16 @@ public class Vault implements TransactionListener
 
 	private final Key[] p2shKeys;
 
-	public static Vault create (Key... keys) throws ValidationException
+	private final BCSAPI api;
+
+	public static Vault create (BCSAPI api, Key... keys) throws ValidationException, BCSAPIException
 	{
 		Preconditions.checkArgument (keys != null && keys.length == 3);
 
 		byte[] script = getCustomerScript (keys);
 		Address address = new Address (Network.PRODUCTION, Address.Type.P2SH, Hash.keyHash (script));
 
-		Vault vault = new Vault (getCustomerScript (keys), address, keys);
+		Vault vault = new Vault (api, getCustomerScript (keys), address, keys);
 		return vault;
 	}
 
@@ -61,7 +71,7 @@ public class Vault implements TransactionListener
 	{
 		ScriptFormat.Writer writer = new ScriptFormat.Writer ();
 		writer.writeToken (new ScriptFormat.Token (ScriptFormat.Opcode.OP_2));
-		for (Key key : keys)
+		for ( Key key : keys )
 		{
 			writer.writeData (key.getPublic ());
 		}
@@ -70,15 +80,18 @@ public class Vault implements TransactionListener
 		return writer.toByteArray ();
 	}
 
-	Vault (byte[] customerScript, Address ownAddress, Key... keys)
+	Vault (BCSAPI api, byte[] customerScript, Address ownAddress, Key... keys) throws BCSAPIException
 	{
 		this.customerScript = customerScript;
 		this.ownAddress = ownAddress;
 		this.p2shKeys = keys;
+		this.api = api;
 		this.accountManager = new AM ();
 		accountManager.addAddress (ownAddress);
+		accountManager.setCreated (new DateTime (2013, 12, 7, 0, 0).getMillis ());
+		accountManager.sync (api);
+		api.removeTransactionListener (accountManager);
 	}
-
 
 	public Key[] getP2SHKeys ()
 	{
@@ -99,12 +112,12 @@ public class Vault implements TransactionListener
 		return pendingTransaction;
 	}
 
-	public PendingTransaction getPendingTransaction(UUID id)
+	public PendingTransaction getPendingTransaction (UUID id)
 	{
 		return pendingTransactions.get (id);
 	}
 
-	public List<PendingTransaction> getAllPendingTransactions()
+	public List<PendingTransaction> getAllPendingTransactions ()
 	{
 		return Ordering.natural ().sortedCopy (pendingTransactions.values ());
 	}
@@ -115,7 +128,7 @@ public class Vault implements TransactionListener
 		accountManager.process (t);
 	}
 
-	public long getBalance()
+	public long getBalance ()
 	{
 		return accountManager.getBalance ();
 	}
@@ -123,5 +136,12 @@ public class Vault implements TransactionListener
 	public AM getAccountManager ()
 	{
 		return accountManager;
+	}
+
+	public void updateTransaction (PendingTransaction transaction) throws BCSAPIException
+	{
+		pendingTransactions.put (transaction.getId (), transaction);
+		api.sendTransaction (transaction.getTransaction ());
+		pendingTransactions.remove (transaction.getId ());
 	}
 }
