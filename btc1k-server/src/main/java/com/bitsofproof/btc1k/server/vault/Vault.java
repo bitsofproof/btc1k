@@ -6,8 +6,11 @@ import com.bitsofproof.supernode.wallet.AddressListAccountManager;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Ordering;
+import org.fusesource.hawtdispatch.OrderedEventAggregator;
 
 import java.math.BigDecimal;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -87,13 +90,23 @@ public class Vault implements TransactionListener
 		return ownAddress;
 	}
 
-	public Transaction createTransaction (Address targetAddress, BigDecimal btcAmount) throws ValidationException
+	public PendingTransaction createTransaction (Address targetAddress, BigDecimal btcAmount) throws ValidationException
 	{
-		Transaction tx = accountManager.pay (targetAddress, btcAmount.longValue (), false);
+		Transaction tx = accountManager.pay (targetAddress, btcAmount.longValue (), true);
 		PendingTransaction pendingTransaction = new PendingTransaction (tx, "");
 
 		pendingTransactions.put (pendingTransaction.getId (), pendingTransaction);
-		return tx;
+		return pendingTransaction;
+	}
+
+	public PendingTransaction getPendingTransaction(UUID id)
+	{
+		return pendingTransactions.get (id);
+	}
+
+	public List<PendingTransaction> getAllPendingTransactions()
+	{
+		return Ordering.natural ().sortedCopy (pendingTransactions.values ());
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package com.bitsofproof.btc1k.fx;
 import com.bitsofproof.dropwizard.supernode.jackson.SupernodeModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.LoggingFilter;
@@ -19,22 +20,22 @@ import javafx.stage.StageBuilder;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
-import java.io.InputStream;
+import java.net.URI;
 
 public class App extends Application
 {
+	private static final URI SERVER_URI = URI.create ("http://localhost:8280/btc1k");
+
 	public static App instance;
 
-	private Client jerseyClient;
+	public RestClient restClient;
 
 	@Override
 	public void start (Stage primaryStage) throws Exception
 	{
 		instance = this;
 
-		jerseyClient = setupJerseyClient ();
-
-		InputStream stream = App.class.getResource ("main.fxml").openStream ();
+		restClient = new RestClient (SERVER_URI);
 
 		FXMLLoader loader = new FXMLLoader (App.class.getResource ("main.fxml"));
 		Parent root = (Parent) loader.load ();
@@ -53,24 +54,6 @@ public class App extends Application
 
 		primaryStage.show ();
 
-	}
-
-	private Client setupJerseyClient ()
-	{
-		ObjectMapper mapper = Jackson.newObjectMapper ()
-		                             .registerModule (new SupernodeModule ());
-
-		Validator validator = Validation.buildDefaultValidatorFactory ().getValidator ();
-
-		ClientConfig cc = new DefaultClientConfig (JsonProcessingExceptionMapper.class);
-		cc.getProperties ().put (ClientConfig.PROPERTY_CONNECT_TIMEOUT, 5000);
-		cc.getProperties ().put (ClientConfig.PROPERTY_READ_TIMEOUT, 5000);
-		cc.getSingletons ().add (new JacksonMessageBodyProvider (mapper, validator));
-
-		Client client = Client.create (cc);
-		client.addFilter (new LoggingFilter ());
-
-		return client;
 	}
 
 	public static void main (String[] args)

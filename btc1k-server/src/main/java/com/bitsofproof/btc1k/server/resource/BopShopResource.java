@@ -161,7 +161,7 @@ public class BopShopResource
 	}
 
 	@Path("/transactions")
-	public TransactionsResource tansactions()
+	public TransactionsResource transactions()
 	{
 		return new TransactionsResource (vault);
 	}

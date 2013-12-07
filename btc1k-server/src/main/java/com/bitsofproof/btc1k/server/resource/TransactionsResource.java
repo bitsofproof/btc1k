@@ -1,8 +1,21 @@
 package com.bitsofproof.btc1k.server.resource;
 
+import com.bitsofproof.btc1k.server.vault.PendingTransaction;
 import com.bitsofproof.btc1k.server.vault.Vault;
+import com.bitsofproof.supernode.common.ValidationException;
+import com.google.common.collect.Ordering;
+import org.fusesource.hawtdispatch.OrderedEventAggregator;
 
+import javax.ws.rs.GET;
 import javax.ws.rs.POST;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriInfo;
+import java.net.URI;
+import java.util.List;
+import java.util.UUID;
 
 public class TransactionsResource
 {
@@ -15,9 +28,29 @@ public class TransactionsResource
 	}
 
 	@POST
-	public void createTransaction(NewTransaction newTransaction)
+	public Response createTransaction (NewTransaction newTransaction, @Context UriInfo uriInfo) throws ValidationException
 	{
-		//vault.createTransaction (newTransaction.getAddress ())
+		PendingTransaction tx = vault.createTransaction (newTransaction.getAddress (), newTransaction.getAmount ());
+
+		URI targetURI = uriInfo.getAbsolutePathBuilder ()
+		                       //.path (BopShopResource.class, "transactions")
+		                       .path (TransactionsResource.class, "showTransaction")
+		                       .build (tx.getId ());
+
+		return Response.created(targetURI).build ();
 	}
 
+	@Path ("/{txId}")
+	@GET
+	public PendingTransaction showTransaction(@PathParam ("txId") UUID id)
+	{
+		return vault.getPendingTransaction (id);
+	}
+
+	@Path("/all")
+	@GET
+	public List<PendingTransaction> allPendingTransactions()
+	{
+		return vault.getAllPendingTransactions ();
+	}
 }

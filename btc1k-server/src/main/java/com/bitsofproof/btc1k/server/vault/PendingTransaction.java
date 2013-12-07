@@ -7,13 +7,17 @@ import java.util.UUID;
 
 public class PendingTransaction implements Comparable<PendingTransaction>
 {
-	private final UUID id;
+	private UUID id;
 
 	private Transaction transaction;
 
 	private String title;
 
-	private final DateTime createdAt;
+	private DateTime createdAt;
+
+	public PendingTransaction ()
+	{
+	}
 
 	public PendingTransaction (Transaction transaction, String title)
 	{
