@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -144,6 +145,25 @@ public class Vault
 		catch ( UnsupportedEncodingException e )
 		{
 		}
+	}
+
+	List<String> getSignedBy (Transaction transaction) throws ValidationException
+	{
+		List<String> names = new ArrayList<> ();
+		for ( TransactionInput input : transaction.getInputs () )
+		{
+			List<Token> tokens = ScriptFormat.parse (input.getScript ());
+			Iterator<String> it = publicKeys.keySet ().iterator ();
+			for ( int i = 1; i < tokens.size () - 1; ++i )
+			{
+				String name = it.next ();
+				if ( tokens.get (i).op != ScriptFormat.Opcode.OP_FALSE )
+				{
+					names.add (name);
+				}
+			}
+		}
+		return names;
 	}
 
 	public PendingTransaction getPendingTransaction (UUID id)
