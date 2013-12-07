@@ -3,14 +3,17 @@ package com.bitsofproof.btc1k.server.vault;
 import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.UUID;
 
+import org.bouncycastle.pqc.math.linearalgebra.ByteUtils;
 import org.joda.time.DateTime;
 
+import com.bitsofproof.btc1k.server.resource.NamedKey;
 import com.bitsofproof.supernode.api.Address;
 import com.bitsofproof.supernode.api.BCSAPI;
 import com.bitsofproof.supernode.api.BCSAPIException;
@@ -178,5 +181,15 @@ public class Vault
 	public PendingTransaction deletePendingTransaction (UUID id)
 	{
 		return pendingTransactions.remove (id);
+	}
+
+	public List<NamedKey> getKeys ()
+	{
+		List<NamedKey> keys = new ArrayList<NamedKey> ();
+		for ( Map.Entry<String, ECPublicKey> e : publicKeys.entrySet () )
+		{
+			keys.add (new NamedKey (e.getKey (), ByteUtils.toHexString (e.getValue ().getPublic ())));
+		}
+		return keys;
 	}
 }

@@ -82,4 +82,12 @@ public class TransactionsResource
 	{
 		return vault.getAllPendingTransactions ();
 	}
+
+	@Path ("/keys")
+	@GET
+	public List<NamedKey> getKeys ()
+	{
+		return vault.getKeys ();
+	}
+
 }
