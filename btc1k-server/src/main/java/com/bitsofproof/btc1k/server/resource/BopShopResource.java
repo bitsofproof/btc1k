@@ -224,6 +224,6 @@ public class BopShopResource
 	@Path ("/transactions")
 	public TransactionsResource tansactions ()
 	{
-		return new TransactionsResource (vault);
+		return new TransactionsResource (vault, api);
 	}
 }

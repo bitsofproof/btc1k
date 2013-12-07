@@ -16,6 +16,7 @@ import javax.ws.rs.core.UriInfo;
 
 import com.bitsofproof.btc1k.server.vault.PendingTransaction;
 import com.bitsofproof.btc1k.server.vault.Vault;
+import com.bitsofproof.supernode.api.BCSAPI;
 import com.bitsofproof.supernode.api.BCSAPIException;
 import com.bitsofproof.supernode.common.ValidationException;
 
@@ -23,10 +24,12 @@ public class TransactionsResource
 {
 
 	private final Vault vault;
+	private final BCSAPI api;
 
-	public TransactionsResource (Vault vault)
+	public TransactionsResource (Vault vault, BCSAPI api)
 	{
 		this.vault = vault;
+		this.api = api;
 	}
 
 	@POST
@@ -66,7 +69,7 @@ public class TransactionsResource
 		}
 		try
 		{
-			vault.updateTransaction (transaction);
+			vault.updateTransaction (api, transaction);
 		}
 		catch ( BCSAPIException e )
 		{

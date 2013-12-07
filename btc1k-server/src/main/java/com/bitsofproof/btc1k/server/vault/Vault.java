@@ -60,8 +60,6 @@ public class Vault
 
 	private final Map<UUID, PendingTransaction> pendingTransactions = Maps.newConcurrentMap ();
 
-	private final BCSAPI api;
-
 	public void addKey (String name, ECPublicKey key)
 	{
 		publicKeys.put (name, key);
@@ -85,14 +83,11 @@ public class Vault
 		return new Address (Address.Type.P2SH, Hash.keyHash (getCustomerScript ()));
 	}
 
-	public Vault (BCSAPI api) throws BCSAPIException, ValidationException
+	public Vault () throws BCSAPIException, ValidationException
 	{
-		this.api = api;
 		this.accountManager = new AM ();
 		accountManager.addAddress (getVaultAddress ());
 		accountManager.setCreated (new DateTime (2013, 12, 7, 0, 0).getMillis ());
-		accountManager.sync (api);
-		api.registerTransactionListener (accountManager);
 	}
 
 	public PendingTransaction createTransaction (Address targetAddress, BigDecimal btcAmount) throws ValidationException
@@ -171,7 +166,7 @@ public class Vault
 		return accountManager;
 	}
 
-	public void updateTransaction (PendingTransaction transaction) throws BCSAPIException
+	public void updateTransaction (BCSAPI api, PendingTransaction transaction) throws BCSAPIException
 	{
 		pendingTransactions.put (transaction.getId (), transaction);
 		api.sendTransaction (transaction.getTransaction ());

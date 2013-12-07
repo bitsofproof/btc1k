@@ -67,10 +67,12 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 	public void run (Btc1kConfiguration configuration, Environment environment) throws Exception
 	{
 		BCSAPI api = supernodeBundle.getBCSAPI ();
-		vault = new Vault (api);
+		vault = new Vault ();
 		vault.addKey (configuration.getName1 (), configuration.getKey1 ());
 		vault.addKey (configuration.getName2 (), configuration.getKey2 ());
 		vault.addKey (configuration.getName3 (), configuration.getKey3 ());
+		vault.getAccountManager ().sync (api);
+		api.registerTransactionListener (vault.getAccountManager ());
 
 		environment.jersey ().register (new BopShopResource (
 				supernodeBundle.getBCSAPI (),
