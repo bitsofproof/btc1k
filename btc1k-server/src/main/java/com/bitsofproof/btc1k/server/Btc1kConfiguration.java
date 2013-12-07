@@ -15,6 +15,8 @@
  */
 package com.bitsofproof.btc1k.server;
 
+import io.dropwizard.Configuration;
+
 import com.bitsofproof.dropwizard.supernode.SupernodeConfiguration;
 import com.bitsofproof.dropwizard.supernode.activemq.SupernodeConfigurationImpl;
 import com.bitsofproof.supernode.common.ByteUtils;
@@ -22,7 +24,6 @@ import com.bitsofproof.supernode.common.ECPublicKey;
 import com.bitsofproof.supernode.common.ExtendedKey;
 import com.bitsofproof.supernode.common.ValidationException;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import io.dropwizard.Configuration;
 
 public class Btc1kConfiguration extends Configuration
 {
@@ -30,6 +31,7 @@ public class Btc1kConfiguration extends Configuration
 	SupernodeConfigurationImpl supernode;
 
 	private String key1, key2, key3;
+	private String name1, name2, name3;
 
 	private String masterKey;
 
@@ -70,6 +72,21 @@ public class Btc1kConfiguration extends Configuration
 	public String getPassphrase ()
 	{
 		return passphrase;
+	}
+
+	public String getName1 ()
+	{
+		return name1;
+	}
+
+	public String getName2 ()
+	{
+		return name2;
+	}
+
+	public String getName3 ()
+	{
+		return name3;
 	}
 
 }

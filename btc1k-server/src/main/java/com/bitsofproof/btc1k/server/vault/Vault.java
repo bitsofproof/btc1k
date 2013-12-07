@@ -1,70 +1,74 @@
 package com.bitsofproof.btc1k.server.vault;
 
-import com.bitsofproof.supernode.api.*;
+import java.io.UnsupportedEncodingException;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
+import java.util.UUID;
+
+import org.joda.time.DateTime;
+
+import com.bitsofproof.supernode.api.Address;
+import com.bitsofproof.supernode.api.BCSAPI;
+import com.bitsofproof.supernode.api.BCSAPIException;
+import com.bitsofproof.supernode.api.Transaction;
+import com.bitsofproof.supernode.api.TransactionInput;
+import com.bitsofproof.supernode.api.TransactionOutput;
+import com.bitsofproof.supernode.common.ECKeyPair;
+import com.bitsofproof.supernode.common.ECPublicKey;
 import com.bitsofproof.supernode.common.Hash;
 import com.bitsofproof.supernode.common.Key;
 import com.bitsofproof.supernode.common.ScriptFormat;
+import com.bitsofproof.supernode.common.ScriptFormat.Token;
 import com.bitsofproof.supernode.common.ValidationException;
 import com.bitsofproof.supernode.wallet.AddressListAccountManager;
-import com.google.common.base.Preconditions;
+import com.bitsofproof.supernode.wallet.BaseAccountManager;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
-import org.joda.time.DateTime;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-
-public class Vault implements TransactionListener
+public class Vault
 {
 	public class AM extends AddressListAccountManager
 	{
 		@Override
 		protected void spendNonAddressOutput (int ix, TransactionOutput source, ScriptFormat.Writer sw, Transaction transaction) throws ValidationException
 		{
+			for ( int i = 0; i < publicKeys.size (); ++i )
+			{
+				sw.writeData (new byte[0]);
+			}
 			sw.writeData (new byte[0]);
-			sw.writeData (new byte[0]);
-			sw.writeData (new byte[0]);
-			sw.writeData (new byte[0]);
-			sw.writeData (customerScript);
+			sw.writeData (getCustomerScript ());
 		}
 
 		@Override
 		public Address getNextAddress () throws ValidationException
 		{
-			return ownAddress;
+			return getVaultAddress ();
 		}
 	}
+
+	private final TreeMap<String, ECPublicKey> publicKeys = new TreeMap<> ();
 
 	private final AM accountManager;
 
 	private final Map<UUID, PendingTransaction> pendingTransactions = Maps.newConcurrentMap ();
 
-	private final byte[] customerScript;
-
-	private final Address ownAddress;
-
-	private final Key[] p2shKeys;
-
 	private final BCSAPI api;
 
-	public static Vault create (BCSAPI api, Key... keys) throws ValidationException, BCSAPIException
+	public void addKey (String name, ECPublicKey key)
 	{
-		Preconditions.checkArgument (keys != null && keys.length == 3);
-
-		byte[] script = getCustomerScript (keys);
-		Address address = new Address (Network.PRODUCTION, Address.Type.P2SH, Hash.keyHash (script));
-
-		Vault vault = new Vault (api, getCustomerScript (keys), address, keys);
-		return vault;
+		publicKeys.put (name, key);
 	}
 
-	private static byte[] getCustomerScript (Key[] keys) throws ValidationException
+	private byte[] getCustomerScript () throws ValidationException
 	{
 		ScriptFormat.Writer writer = new ScriptFormat.Writer ();
 		writer.writeToken (new ScriptFormat.Token (ScriptFormat.Opcode.OP_2));
-		for ( Key key : keys )
+		for ( Key key : publicKeys.values () )
 		{
 			writer.writeData (key.getPublic ());
 		}
@@ -73,27 +77,19 @@ public class Vault implements TransactionListener
 		return writer.toByteArray ();
 	}
 
-	Vault (BCSAPI api, byte[] customerScript, Address ownAddress, Key... keys) throws BCSAPIException
+	public Address getVaultAddress () throws ValidationException
 	{
-		this.customerScript = customerScript;
-		this.ownAddress = ownAddress;
-		this.p2shKeys = keys;
+		return new Address (Address.Type.P2SH, Hash.keyHash (getCustomerScript ()));
+	}
+
+	public Vault (BCSAPI api) throws BCSAPIException, ValidationException
+	{
 		this.api = api;
 		this.accountManager = new AM ();
-		accountManager.addAddress (ownAddress);
+		accountManager.addAddress (getVaultAddress ());
 		accountManager.setCreated (new DateTime (2013, 12, 7, 0, 0).getMillis ());
 		accountManager.sync (api);
-		api.removeTransactionListener (accountManager);
-	}
-
-	public Key[] getP2SHKeys ()
-	{
-		return p2shKeys;
-	}
-
-	public Address getTwoOfThreeAddress ()
-	{
-		return ownAddress;
+		api.registerTransactionListener (accountManager);
 	}
 
 	public PendingTransaction createTransaction (Address targetAddress, BigDecimal btcAmount) throws ValidationException
@@ -105,6 +101,53 @@ public class Vault implements TransactionListener
 		return pendingTransaction;
 	}
 
+	public void sign (Transaction transaction, String passphrase) throws ValidationException
+	{
+		try
+		{
+			ECKeyPair key = new ECKeyPair (new BigInteger (1, Hash.sha256 (passphrase.getBytes ("UTF-8"))), true);
+			String name = null;
+			for ( Map.Entry<String, ECPublicKey> e : publicKeys.entrySet () )
+			{
+				if ( Arrays.equals (e.getValue ().getPublic (), key.getPublic ()) )
+				{
+					name = e.getKey ();
+				}
+			}
+			if ( name == null )
+			{
+				throw new ValidationException ("Not a known key");
+			}
+
+			int slot = publicKeys.headMap (name).size () + 1;
+			int i = 0;
+			byte[] vaultInputScript = getVaultAddress ().getAddressScript ();
+
+			for ( TransactionInput input : transaction.getInputs () )
+			{
+				List<Token> tokens = ScriptFormat.parse (input.getScript ());
+
+				byte[] sig =
+						key.sign (BaseAccountManager.hashTransaction (transaction, i++, ScriptFormat.SIGHASH_ALL, vaultInputScript));
+				byte[] sigPlusType = new byte[sig.length + 1];
+				System.arraycopy (sig, 0, sigPlusType, 0, sig.length);
+				sigPlusType[sigPlusType.length - 1] = (byte) (ScriptFormat.SIGHASH_ALL & 0xff);
+				tokens.get (slot).op = ScriptFormat.Opcode.values ()[sigPlusType.length];
+				tokens.get (slot).data = sigPlusType;
+
+				ScriptFormat.Writer writer = new ScriptFormat.Writer ();
+				for ( Token t : tokens )
+				{
+					writer.writeToken (t);
+				}
+				input.setScript (writer.toByteArray ());
+			}
+		}
+		catch ( UnsupportedEncodingException e )
+		{
+		}
+	}
+
 	public PendingTransaction getPendingTransaction (UUID id)
 	{
 		return pendingTransactions.get (id);
@@ -113,12 +156,6 @@ public class Vault implements TransactionListener
 	public List<PendingTransaction> getAllPendingTransactions ()
 	{
 		return Ordering.natural ().sortedCopy (pendingTransactions.values ());
-	}
-
-	@Override
-	public void process (Transaction t)
-	{
-		accountManager.process (t);
 	}
 
 	public long getBalance ()

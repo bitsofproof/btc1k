@@ -83,7 +83,7 @@ public class BopShopResource
 		this.customerId = customerId;
 		this.password = password;
 
-		log.info ("Vault address is " + vault.getTwoOfThreeAddress ());
+		log.info ("Vault address is " + vault.getVaultAddress ());
 	}
 
 	@Path ("/payment")
@@ -137,7 +137,7 @@ public class BopShopResource
 
 		transaction.setOutputs (new ArrayList<TransactionOutput> ());
 		TransactionOutput vaultOutput = new TransactionOutput ();
-		vaultOutput.setScript (vault.getTwoOfThreeAddress ().getAddressScript ());
+		vaultOutput.setScript (vault.getVaultAddress ().getAddressScript ());
 		vaultOutput.setValue (amount - FEE - mB);
 		transaction.getOutputs ().add (vaultOutput);
 		TransactionOutput ticket = new TransactionOutput ();

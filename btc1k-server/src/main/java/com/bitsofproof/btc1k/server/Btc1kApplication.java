@@ -67,8 +67,10 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 	public void run (Btc1kConfiguration configuration, Environment environment) throws Exception
 	{
 		BCSAPI api = supernodeBundle.getBCSAPI ();
-		vault = Vault.create (api, configuration.getKey1 (), configuration.getKey2 (), configuration.getKey3 ());
-		api.registerTransactionListener (vault);
+		vault = new Vault (api);
+		vault.addKey (configuration.getName1 (), configuration.getKey1 ());
+		vault.addKey (configuration.getName2 (), configuration.getKey2 ());
+		vault.addKey (configuration.getName3 (), configuration.getKey3 ());
 
 		environment.jersey ().register (new BopShopResource (
 				supernodeBundle.getBCSAPI (),
@@ -86,7 +88,7 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 
 	private void fundVaultForTesting () throws ValidationException, BCSAPIException, InterruptedException
 	{
-		Helper h = new Helper (supernodeBundle.getBox (), vault.getTwoOfThreeAddress ());
+		Helper h = new Helper (supernodeBundle.getBox (), vault.getVaultAddress ());
 		h.fundVault (BigDecimal.valueOf (20));
 
 		Thread.sleep (1000);
