@@ -5,6 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -43,7 +44,7 @@ public class SignTransactionDialog extends GridPane
 	}
 
 	@FXML
-	PasswordField passphrase;
+	TextField passphrase;
 
 	@FXML
 	Button signButton;

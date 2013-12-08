@@ -23,7 +23,7 @@
             <Font name="System Bold" size="13.0" />
           </font>
         </Label>
-        <PasswordField fx:id="passphrase" prefWidth="200.0" promptText="Passhprase" />
+        <TextField fx:id="passphrase" prefWidth="200.0" promptText="Passphrase" />
         <Label fx:id="detailsLabel" text="" textAlignment="LEFT" wrapText="true">
           <font>
             <Font size="12.0" />
