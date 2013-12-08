@@ -155,6 +155,27 @@ public class MainController
 					               .accept (MediaType.APPLICATION_JSON)
 					               .put (ClientResponse.class, value);
 				}
+
+				@Override
+				protected void succeeded ()
+				{
+					super.succeeded ();
+					refreshTransactionList ();
+				}
+
+				@Override
+				protected void cancelled ()
+				{
+					super.cancelled ();
+					refreshTransactionList ();
+				}
+
+				@Override
+				protected void failed ()
+				{
+					super.failed ();
+					refreshTransactionList ();
+				}
 			});
 		}
 		catch (ValidationException e)
