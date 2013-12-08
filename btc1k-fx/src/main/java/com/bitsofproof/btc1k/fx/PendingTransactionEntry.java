@@ -75,7 +75,7 @@ public class PendingTransactionEntry extends HBox
 	private void updateValues ()
 	{
 		PendingTransaction pt = pendingTransaction.get ();
-		amountLabel.setText (pt.getAmount ().movePointLeft (8).toPlainString ());
+		amountLabel.setText (pt.getAmount ().toPlainString ());
 		addressLabel.setText (pt.getTargetAddress ().toString ());
 		createdAtLabel.setText (pt.getCreatedAt ().toString ());
 	}
