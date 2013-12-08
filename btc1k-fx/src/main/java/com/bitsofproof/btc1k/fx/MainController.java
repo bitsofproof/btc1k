@@ -9,7 +9,9 @@ import com.bitsofproof.supernode.common.ValidationException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
+import javafx.beans.binding.Binding;
 import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -64,7 +66,8 @@ public class MainController
 		messageLabel.textProperty ().bind (Bindings.selectString (App.instance.restClient.currentTaskProperty (), "title"));
 
 		newTransactionPane.setExpanded (false);
-		newTransactionPane.expandedProperty ().addListener (new ChangeListener<Boolean> () {
+		newTransactionPane.expandedProperty ().addListener (new ChangeListener<Boolean> ()
+		{
 			public void changed (ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean expanded)
 			{
 				if (expanded)
@@ -75,7 +78,18 @@ public class MainController
 		validateTextField (targetAddress, address, addressConverter ());
 		validateTextField (amount, btc, adapter (new BigDecimalStringConverter ()));
 
-		sendButton.disableProperty ().bind (address.isNull ().or (btc.isNull ()));
+		sendButton.disableProperty ().bind (new BooleanBinding ()
+		{
+			{
+				bind (address, btc);
+			}
+
+			protected boolean computeValue ()
+			{
+				return (address.get () == null || address.get ().isLeft () || btc.get () == null || btc.get ().isLeft ());
+			}
+		});
+		//sendButton.disableProperty ().bind (address.isNull ().or (btc.isNull ()));
 		refreshTransactionList ();
 	}
 
