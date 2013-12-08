@@ -94,7 +94,7 @@ public class EitherConverters
 
 				try
 				{
-					return Either.right (Address.fromSatoshiStyle (s));
+					return Either.right (Address.fromSatoshiStyle (s.trim ()));
 				}
 				catch (ValidationException e)
 				{

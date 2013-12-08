@@ -216,7 +216,7 @@ public class Vault
 
 	public List<NamedKey> getKeys ()
 	{
-		List<NamedKey> keys = new ArrayList<NamedKey> ();
+		List<NamedKey> keys = new ArrayList<> ();
 		for ( Map.Entry<String, ECPublicKey> e : publicKeys.entrySet () )
 		{
 			keys.add (new NamedKey (e.getKey (), ByteUtils.toHexString (e.getValue ().getPublic ())));
