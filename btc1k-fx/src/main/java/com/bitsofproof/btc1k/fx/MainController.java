@@ -12,6 +12,8 @@ import com.sun.jersey.api.client.WebResource;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -62,6 +64,13 @@ public class MainController
 		messageLabel.textProperty ().bind (Bindings.selectString (App.instance.restClient.currentTaskProperty (), "title"));
 
 		newTransactionPane.setExpanded (false);
+		newTransactionPane.expandedProperty ().addListener (new ChangeListener<Boolean> () {
+			public void changed (ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean expanded)
+			{
+				if (expanded)
+					targetAddress.requestFocus ();
+			}
+		});
 
 		validateTextField (targetAddress, address, addressConverter ());
 		validateTextField (amount, btc, adapter (new BigDecimalStringConverter ()));
