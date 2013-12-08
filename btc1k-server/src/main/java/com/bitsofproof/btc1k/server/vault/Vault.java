@@ -61,11 +61,6 @@ public class Vault
 
 	private final Map<UUID, PendingTransaction> pendingTransactions = Maps.newConcurrentMap ();
 
-	public void addKey (String name, ECPublicKey key)
-	{
-		publicKeys.put (name, key);
-	}
-
 	private byte[] getCustomerScript () throws ValidationException
 	{
 		ScriptFormat.Writer writer = new ScriptFormat.Writer ();
@@ -84,9 +79,13 @@ public class Vault
 		return new Address (Address.Type.P2SH, Hash.keyHash (getCustomerScript ()));
 	}
 
-	public Vault () throws BCSAPIException, ValidationException
+	public Vault (Map<String, String> keys) throws BCSAPIException, ValidationException
 	{
 		this.accountManager = new AM ();
+		for ( Map.Entry<String, String> keyEntry : keys.entrySet () )
+		{
+			publicKeys.put (keyEntry.getKey (), new ECPublicKey (ByteUtils.fromHexString (keyEntry.getValue ()), true));
+		}
 		accountManager.addAddress (getVaultAddress ());
 		accountManager.setCreated (new DateTime (2013, 12, 7, 0, 0).getMillis ());
 	}

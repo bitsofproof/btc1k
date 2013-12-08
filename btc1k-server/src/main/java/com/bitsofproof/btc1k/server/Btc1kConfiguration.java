@@ -15,19 +15,17 @@
  */
 package com.bitsofproof.btc1k.server;
 
-import com.bitsofproof.btc1k.server.vault.Vault;
-import com.bitsofproof.supernode.api.BCSAPIException;
 import io.dropwizard.Configuration;
 
+import java.util.Map;
+
+import com.bitsofproof.btc1k.server.vault.Vault;
 import com.bitsofproof.dropwizard.supernode.SupernodeConfiguration;
 import com.bitsofproof.dropwizard.supernode.activemq.SupernodeConfigurationImpl;
-import com.bitsofproof.supernode.common.ByteUtils;
-import com.bitsofproof.supernode.common.ECPublicKey;
+import com.bitsofproof.supernode.api.BCSAPIException;
 import com.bitsofproof.supernode.common.ExtendedKey;
 import com.bitsofproof.supernode.common.ValidationException;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.util.Map;
 
 public class Btc1kConfiguration extends Configuration
 {
@@ -45,13 +43,9 @@ public class Btc1kConfiguration extends Configuration
 			this.keys = keys;
 		}
 
-		public Vault createVault() throws ValidationException, BCSAPIException
+		public Vault createVault () throws ValidationException, BCSAPIException
 		{
-			Vault vault = new Vault ();
-			for (Map.Entry<String, String> keyEntry : keys.entrySet ())
-			{
-				vault.addKey (keyEntry.getKey (), new ECPublicKey (ByteUtils.fromHex (keyEntry.getValue ()), true));
-			}
+			Vault vault = new Vault (keys);
 			return vault;
 		}
 	}
@@ -59,7 +53,7 @@ public class Btc1kConfiguration extends Configuration
 	@JsonProperty
 	SupernodeConfigurationImpl supernode;
 
-	@JsonProperty("vault")
+	@JsonProperty ("vault")
 	VaultConfiguration vaultFactory;
 
 	private String masterKey;

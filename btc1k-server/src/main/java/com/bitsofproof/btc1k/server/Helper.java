@@ -6,7 +6,7 @@ import java.util.concurrent.Semaphore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.bitsofproof.supernode.api.Address;
+import com.bitsofproof.btc1k.server.vault.Vault;
 import com.bitsofproof.supernode.api.BCSAPI;
 import com.bitsofproof.supernode.api.BCSAPIException;
 import com.bitsofproof.supernode.api.Block;
@@ -17,7 +17,6 @@ import com.bitsofproof.supernode.common.ValidationException;
 import com.bitsofproof.supernode.testbox.APIServerInABox;
 import com.bitsofproof.supernode.wallet.AccountListener;
 import com.bitsofproof.supernode.wallet.AccountManager;
-import com.bitsofproof.supernode.wallet.AddressListAccountManager;
 import com.bitsofproof.supernode.wallet.KeyListAccountManager;
 
 public class Helper
@@ -26,7 +25,7 @@ public class Helper
 
 	public static final long MINIMUM_FEE = 10000;
 
-	private final Address vaultAddress;
+	private final Vault vault;
 
 	private final APIServerInABox box;
 
@@ -36,10 +35,10 @@ public class Helper
 
 	private String lastHash;
 
-	public Helper (APIServerInABox box, Address address)
+	public Helper (APIServerInABox box, Vault vault)
 	{
 		this.box = box;
-		this.vaultAddress = address;
+		this.vault = vault;
 		this.miner = ECKeyPair.createNew (true);
 	}
 
@@ -81,15 +80,13 @@ public class Helper
 
 		final Semaphore paymentDone = new Semaphore (0);
 
-		AddressListAccountManager target = new AddressListAccountManager ();
-		target.addAddress (vaultAddress);
-		api.registerTransactionListener (target);
-		target.addAccountListener (new AccountListener ()
+		vault.getAccountManager ().addAccountListener (new AccountListener ()
 		{
 			@Override
 			public void accountChanged (AccountManager account, Transaction t)
 			{
 				long c = account.getConfirmed ();
+				System.out.println ("in vault " + satoshi);
 				if ( c == satoshi )
 				{
 					paymentDone.release ();
@@ -97,7 +94,7 @@ public class Helper
 			}
 		});
 		log.info ("Sending fund payment");
-		Transaction payment = source.pay (vaultAddress, satoshi, true);
+		Transaction payment = source.pay (vault.getVaultAddress (), satoshi, true);
 		api.sendTransaction (payment);
 		b = box.createBlock (lastHash, Transaction.createCoinbase (miner.getAddress (), satoshi, blockHeight++));
 		b.getTransactions ().add (payment);
@@ -106,7 +103,6 @@ public class Helper
 		api.sendBlock (b);
 
 		paymentDone.acquireUninterruptibly ();
-		api.removeTransactionListener (target);
 
 		log.info ("Vault funded");
 	}

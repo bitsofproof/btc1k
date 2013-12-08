@@ -77,7 +77,7 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 				configuration.getMasterKey (),
 				configuration.getCustomerId (),
 				configuration.getPassphrase ()
-				)/*.processCleared ()*/);
+				)/* .processCleared () */);
 
 		if ( supernodeBundle.getBox () != null )
 		{
@@ -87,7 +87,7 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 
 	private void fundVaultForTesting () throws ValidationException, BCSAPIException, InterruptedException
 	{
-		Helper h = new Helper (supernodeBundle.getBox (), vault.getVaultAddress ());
+		Helper h = new Helper (supernodeBundle.getBox (), vault);
 		h.fundVault (BigDecimal.valueOf (20));
 
 		Thread.sleep (1000);
