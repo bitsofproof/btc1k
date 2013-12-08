@@ -106,12 +106,19 @@ public class MainController
 		final PendingTransactionEntry entry = new PendingTransactionEntry (pt);
 		entry.signHandler (new EventHandler<ActionEvent> ()
 		{
-			@Override
 			public void handle (ActionEvent actionEvent)
 			{
 				signTransaction (pt);
 			}
 		});
+		entry.rejectHandler (new EventHandler<ActionEvent> ()
+		{
+			public void handle (ActionEvent actionEvent)
+			{
+				rejectTransaction (pt);
+			}
+		});
+
 		return entry;
 	}
 
@@ -137,6 +144,41 @@ public class MainController
 		});
 
 		//refreshTransactionList ();
+	}
+
+	private void rejectTransaction (final PendingTransaction tx)
+	{
+		App.instance.restClient.submitRestCall (new RestTask<ClientResponse> ()
+		{
+			@Override
+			protected ClientResponse call (WebResource resource)
+			{
+				return resource.path ("/transactions/" + tx.getId ())
+				               .accept (MediaType.APPLICATION_JSON)
+				               .delete (ClientResponse.class);
+			}
+
+			@Override
+			protected void succeeded ()
+			{
+				super.succeeded ();
+				refreshTransactionList ();
+			}
+
+			@Override
+			protected void cancelled ()
+			{
+				super.cancelled ();
+				refreshTransactionList ();
+			}
+
+			@Override
+			protected void failed ()
+			{
+				super.failed ();
+				refreshTransactionList ();
+			}
+		});
 	}
 
 	private void signTransaction (final PendingTransaction value)

@@ -32,6 +32,9 @@ public class PendingTransactionEntry extends HBox
 	@FXML
 	private Button signButton;
 
+	@FXML
+	private Button rejectButton;
+
 	public PendingTransactionEntry (PendingTransaction pendingTransaction)
 	{
 		pendingTransaction.getTransaction ().computeHash ();
@@ -54,6 +57,11 @@ public class PendingTransactionEntry extends HBox
 	public void signHandler (EventHandler<ActionEvent> handler)
 	{
 		signButton.setOnAction (handler);
+	}
+
+	public void rejectHandler (EventHandler<ActionEvent> handler)
+	{
+		rejectButton.setOnAction (handler);
 	}
 
 	public void initialize()
