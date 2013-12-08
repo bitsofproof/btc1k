@@ -182,7 +182,7 @@ public class Vault
 
 	public List<PendingTransaction> getAllPendingTransactions ()
 	{
-		return Ordering.natural ().sortedCopy (pendingTransactions.values ());
+		return Ordering.natural ().reverse ().sortedCopy (pendingTransactions.values ());
 	}
 
 	public long getBalance ()
