@@ -1,15 +1,10 @@
 package com.bitsofproof.btc1k.fx;
 
-import com.bitsofproof.dropwizard.supernode.jackson.SupernodeModule;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.WebResource;
-import com.sun.jersey.api.client.config.ClientConfig;
-import com.sun.jersey.api.client.config.DefaultClientConfig;
-import com.sun.jersey.api.client.filter.LoggingFilter;
-import io.dropwizard.jackson.Jackson;
-import io.dropwizard.jersey.jackson.JacksonMessageBodyProvider;
-import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
+import com.bitsofproof.btc1k.fx.rest.RestClient;
+import com.bitsofproof.btc1k.server.resource.NamedKey;
+import com.bitsofproof.btc1k.server.vault.Vault;
+import com.bitsofproof.supernode.common.ECPublicKey;
+import com.sun.jersey.api.client.GenericType;
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -18,9 +13,10 @@ import javafx.scene.SceneBuilder;
 import javafx.stage.Stage;
 import javafx.stage.StageBuilder;
 
-import javax.validation.Validation;
-import javax.validation.Validator;
+import javax.ws.rs.core.MediaType;
 import java.net.URI;
+import java.util.List;
+import java.util.TreeMap;
 
 public class App extends Application
 {
@@ -30,12 +26,17 @@ public class App extends Application
 
 	public RestClient restClient;
 
+	public Vault vault;
+
 	@Override
 	public void start (Stage primaryStage) throws Exception
 	{
 		instance = this;
 
 		restClient = new RestClient (SERVER_URI);
+		vault = new Vault ();
+
+		fetchKeys ();
 
 		FXMLLoader loader = new FXMLLoader (App.class.getResource ("main.fxml"));
 		Parent root = (Parent) loader.load ();
@@ -54,6 +55,18 @@ public class App extends Application
 
 		primaryStage.show ();
 
+	}
+
+	public void fetchKeys ()
+	{
+		List<NamedKey> keys = restClient.getBaseResource ()
+		                                .path ("/transactions/keys")
+		                                .accept (MediaType.APPLICATION_JSON)
+		                                .get (new GenericType<List<NamedKey>> () {});
+		for (NamedKey key : keys)
+		{
+			vault.addKey (key.getName (), key.getPublicKey ());
+		}
 	}
 
 	public static void main (String[] args)

@@ -29,7 +29,7 @@ public class BitcoinAddressField extends ObjectTextField<Either<String, Address>
 
 			try
 			{
-				return Either.right (Address.fromSatoshiStyle (s));
+				return Either.right (Address.fromSatoshiStyle (s.trim ()));
 			}
 			catch (ValidationException e)
 			{

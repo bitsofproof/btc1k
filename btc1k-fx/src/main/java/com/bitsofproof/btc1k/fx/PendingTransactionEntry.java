@@ -7,6 +7,7 @@ import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
@@ -26,6 +27,9 @@ public class PendingTransactionEntry extends HBox
 	@FXML
 	private Label createdAtLabel;
 
+	@FXML
+	private Button signButton;
+
 	public PendingTransactionEntry (PendingTransaction pendingTransaction)
 	{
 		pendingTransaction.getTransaction ().computeHash ();
@@ -43,6 +47,11 @@ public class PendingTransactionEntry extends HBox
 		{
 			throw new RuntimeException (e);
 		}
+	}
+
+	public void foo()
+	{
+
 	}
 
 	public void initialize()

@@ -15,6 +15,8 @@
  */
 package com.bitsofproof.btc1k.server;
 
+import com.bitsofproof.btc1k.server.vault.Vault;
+import com.bitsofproof.supernode.api.BCSAPIException;
 import io.dropwizard.Configuration;
 
 import com.bitsofproof.dropwizard.supernode.SupernodeConfiguration;
@@ -25,39 +27,46 @@ import com.bitsofproof.supernode.common.ExtendedKey;
 import com.bitsofproof.supernode.common.ValidationException;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.Map;
+
 public class Btc1kConfiguration extends Configuration
 {
+	public static class VaultConfiguration
+	{
+		private Map<String, String> keys;
+
+		public Map<String, String> getKeys ()
+		{
+			return keys;
+		}
+
+		public void setKeys (Map<String, String> keys)
+		{
+			this.keys = keys;
+		}
+
+		public Vault createVault() throws ValidationException, BCSAPIException
+		{
+			Vault vault = new Vault ();
+			for (Map.Entry<String, String> keyEntry : keys.entrySet ())
+			{
+				vault.addKey (keyEntry.getKey (), new ECPublicKey (ByteUtils.fromHex (keyEntry.getValue ()), true));
+			}
+			return vault;
+		}
+	}
+
 	@JsonProperty
 	SupernodeConfigurationImpl supernode;
 
-	private String key1, key2, key3;
-	private String name1, name2, name3;
+	@JsonProperty("vault")
+	VaultConfiguration vaultFactory;
 
 	private String masterKey;
 
 	private Integer customerId;
 
 	private String passphrase;
-
-	public SupernodeConfiguration getSupernode ()
-	{
-		return supernode;
-	}
-
-	public ECPublicKey getKey1 ()
-	{
-		return new ECPublicKey (ByteUtils.fromHex (key1), true);
-	}
-
-	public ECPublicKey getKey2 ()
-	{
-		return new ECPublicKey (ByteUtils.fromHex (key2), true);
-	}
-
-	public ECPublicKey getKey3 ()
-	{
-		return new ECPublicKey (ByteUtils.fromHex (key3), true);
-	}
 
 	public ExtendedKey getMasterKey () throws ValidationException
 	{
@@ -74,19 +83,14 @@ public class Btc1kConfiguration extends Configuration
 		return passphrase;
 	}
 
-	public String getName1 ()
+	public VaultConfiguration getVaultFactory ()
 	{
-		return name1;
+		return vaultFactory;
 	}
 
-	public String getName2 ()
+	public SupernodeConfiguration getSupernode ()
 	{
-		return name2;
-	}
-
-	public String getName3 ()
-	{
-		return name3;
+		return supernode;
 	}
 
 }

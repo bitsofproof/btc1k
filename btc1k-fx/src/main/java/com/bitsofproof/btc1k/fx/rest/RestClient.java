@@ -1,9 +1,8 @@
-package com.bitsofproof.btc1k.fx;
+package com.bitsofproof.btc1k.fx.rest;
 
 import com.bitsofproof.dropwizard.supernode.jackson.SupernodeModule;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
@@ -14,7 +13,6 @@ import io.dropwizard.jersey.jackson.JsonProcessingExceptionMapper;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.concurrent.Task;
-import javafx.util.Callback;
 
 import javax.validation.Validation;
 import javax.validation.Validator;
@@ -54,7 +52,7 @@ public class RestClient
 
 	private final URI baseURI;
 
-	private ObjectProperty<RestTask> currentTask = new SimpleObjectProperty<> (this, "currentTask");
+	private ObjectProperty<Task<?>> currentTask = new SimpleObjectProperty<> (this, "currentTask");
 
 	public RestClient (URI baseURI)
 	{
@@ -80,67 +78,25 @@ public class RestClient
 		return client.resource (baseURI);
 	}
 
-	public <T> RestTask<T> submitRestCall (String title, Callback<WebResource, T> callback)
-	{
-
-		return new RestTask (title, callback);
-	}
-
-	public RestTask getCurrentTask ()
+	public Task<?> getCurrentTask ()
 	{
 		return currentTask.get ();
 	}
 
-	public ObjectProperty<RestTask> currentTaskProperty ()
+	public ObjectProperty<Task<?>> currentTaskProperty ()
 	{
 		return currentTask;
 	}
 
-	public class RestTask<T> extends Task<T>
+	public <T> void submitRestCall (final RestTask<T> task)
 	{
-		private final Callback<WebResource, T> callback;
-
-		public RestTask (String title, Callback<WebResource, T> callback)
+		task.setClient (client);
+		if (!task.hasUri ())
 		{
-			this.callback = callback;
-			updateTitle (title);
+			task.setResource (getBaseResource ());
 		}
 
-		// called from the GUI thread
-		public void start()
-		{
-			EXECUTOR.submit (this);
-		}
-
-		@Override
-		protected void running ()
-		{
-			currentTask.set (this);
-		}
-
-		@Override
-		protected void succeeded ()
-		{
-			currentTask.set (null);
-		}
-
-		@Override
-		protected void cancelled ()
-		{
-			currentTask.set (null);
-		}
-
-		@Override
-		protected void failed ()
-		{
-			currentTask.set (null);
-		}
-
-		@Override
-		protected T call () throws Exception
-		{
-			return callback.call (getBaseResource ());
-		}
+		EXECUTOR.submit (task);
 	}
 
 }
