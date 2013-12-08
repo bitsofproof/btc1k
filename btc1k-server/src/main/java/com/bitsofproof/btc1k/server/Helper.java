@@ -86,7 +86,6 @@ public class Helper
 			public void accountChanged (AccountManager account, Transaction t)
 			{
 				long c = account.getConfirmed ();
-				System.out.println ("in vault " + satoshi);
 				if ( c == satoshi )
 				{
 					paymentDone.release ();

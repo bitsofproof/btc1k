@@ -129,14 +129,13 @@ public class Vault
 
 			int slot = publicKeys.headMap (name).size () + 1;
 			int i = 0;
-			byte[] vaultInputScript = getVaultAddress ().getAddressScript ();
 
 			for ( TransactionInput input : transaction.getInputs () )
 			{
 				List<Token> tokens = ScriptFormat.parse (input.getScript ());
 
 				byte[] sig =
-						key.sign (BaseAccountManager.hashTransaction (transaction, i++, ScriptFormat.SIGHASH_ALL, vaultInputScript));
+						key.sign (BaseAccountManager.hashTransaction (transaction, i++, ScriptFormat.SIGHASH_ALL, getCustomerScript ()));
 				byte[] sigPlusType = new byte[sig.length + 1];
 				System.arraycopy (sig, 0, sigPlusType, 0, sig.length);
 				sigPlusType[sigPlusType.length - 1] = (byte) (ScriptFormat.SIGHASH_ALL & 0xff);
@@ -199,8 +198,15 @@ public class Vault
 	public void updateTransaction (BCSAPI api, PendingTransaction transaction) throws BCSAPIException
 	{
 		pendingTransactions.put (transaction.getId (), transaction);
-		api.sendTransaction (transaction.getTransaction ());
-		pendingTransactions.remove (transaction.getId ());
+		try
+		{
+			api.sendTransaction (transaction.getTransaction ());
+			pendingTransactions.remove (transaction.getId ());
+		}
+		catch ( BCSAPIException e )
+		{
+			throw e;
+		}
 	}
 
 	public PendingTransaction deletePendingTransaction (UUID id)
