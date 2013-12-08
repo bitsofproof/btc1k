@@ -5,6 +5,10 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.event.Event;
+import javafx.event.EventHandler;
+import javafx.event.EventType;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
@@ -49,9 +53,9 @@ public class PendingTransactionEntry extends HBox
 		}
 	}
 
-	public void foo()
+	public void signHandler (EventHandler<ActionEvent> handler)
 	{
-
+		signButton.setOnAction (handler);
 	}
 
 	public void initialize()

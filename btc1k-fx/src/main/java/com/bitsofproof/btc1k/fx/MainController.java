@@ -12,6 +12,8 @@ import com.sun.jersey.api.client.WebResource;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -95,9 +97,22 @@ public class MainController
 		transactionListPane.getChildren ().clear ();
 		for (PendingTransaction pendingTransaction : transactionList)
 		{
-			PendingTransactionEntry entry = new PendingTransactionEntry (pendingTransaction);
-			transactionListPane.getChildren ().add (entry);
+			transactionListPane.getChildren ().add (createEntry (pendingTransaction));
 		}
+	}
+
+	private PendingTransactionEntry createEntry (final PendingTransaction pt)
+	{
+		final PendingTransactionEntry entry = new PendingTransactionEntry (pt);
+		entry.signHandler (new EventHandler<ActionEvent> ()
+		{
+			@Override
+			public void handle (ActionEvent actionEvent)
+			{
+				signTransaction (pt);
+			}
+		});
+		return entry;
 	}
 
 	private void txAdded (URI uri)
@@ -116,8 +131,8 @@ public class MainController
 			protected void succeeded ()
 			{
 				super.succeeded ();
-				transactionListPane.getChildren ().add(0, new PendingTransactionEntry (getValue ()));
-				signTransaction(getValue ());
+				transactionListPane.getChildren ().add (0, createEntry (getValue ()));
+				signTransaction (getValue ());
 			}
 		});
 
@@ -130,7 +145,8 @@ public class MainController
 		try
 		{
 			App.instance.vault.sign (value.getTransaction (), passphrase);
-			App.instance.restClient.submitRestCall (new RestTask<ClientResponse>() {
+			App.instance.restClient.submitRestCall (new RestTask<ClientResponse> ()
+			{
 				@Override
 				protected ClientResponse call (WebResource resource)
 				{
@@ -143,6 +159,7 @@ public class MainController
 		}
 		catch (ValidationException e)
 		{
+			throw new RuntimeException (e);
 			// TODO display error dialog
 		}
 	}

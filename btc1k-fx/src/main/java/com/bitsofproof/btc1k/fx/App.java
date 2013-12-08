@@ -15,7 +15,9 @@ import javafx.stage.StageBuilder;
 
 import javax.ws.rs.core.MediaType;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeMap;
 
 public class App extends Application
@@ -34,9 +36,8 @@ public class App extends Application
 		instance = this;
 
 		restClient = new RestClient (SERVER_URI);
-		vault = new Vault ();
+		vault = new Vault (fetchKeys ());
 
-		fetchKeys ();
 
 		FXMLLoader loader = new FXMLLoader (App.class.getResource ("main.fxml"));
 		Parent root = (Parent) loader.load ();
@@ -57,16 +58,18 @@ public class App extends Application
 
 	}
 
-	public void fetchKeys ()
+	public Map<String, String> fetchKeys ()
 	{
 		List<NamedKey> keys = restClient.getBaseResource ()
 		                                .path ("/transactions/keys")
 		                                .accept (MediaType.APPLICATION_JSON)
 		                                .get (new GenericType<List<NamedKey>> () {});
+		Map<String, String> keymap = new HashMap<> ();
 		for (NamedKey key : keys)
 		{
-			vault.addKey (key.getName (), key.getPublicKey ());
+			keymap.put(key.getName (), key.getKey ());
 		}
+		return keymap;
 	}
 
 	public static void main (String[] args)

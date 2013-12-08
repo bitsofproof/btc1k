@@ -8,6 +8,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.layout.GridPane;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.stage.StageBuilder;
 
 import java.io.IOException;
 
@@ -21,9 +22,10 @@ public class SignTransactionDialog extends GridPane
 		try
 		{
 			Stage dialogStage = new Stage ();
-			SignTransactionDialog dialog = new SignTransactionDialog (dialogStage);
-
+			dialogStage.setTitle ("BTC-1K");
 			dialogStage.initModality (Modality.APPLICATION_MODAL);
+
+			SignTransactionDialog dialog = new SignTransactionDialog (dialogStage);
 			FXMLLoader loader = new FXMLLoader (SignTransactionDialog.class.getResource ("SignTransactionDialog.fxml"));
 			loader.setController (dialog);
 			loader.setRoot (dialog);
@@ -49,7 +51,11 @@ public class SignTransactionDialog extends GridPane
 	public SignTransactionDialog (Stage stage)
 	{
 		this.stage = stage;
-		signButton.disableProperty ().bind(passphrase.textProperty ().isNotNull ());
+	}
+
+	public void initialize()
+	{
+		signButton.disableProperty ().bind(passphrase.textProperty ().isNull ().or(passphrase.textProperty ().isEqualTo ("")));
 	}
 
 	public void onSign()
