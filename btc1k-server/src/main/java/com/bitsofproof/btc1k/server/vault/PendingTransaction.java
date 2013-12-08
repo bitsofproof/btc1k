@@ -5,6 +5,8 @@ import com.bitsofproof.supernode.api.Transaction;
 import org.joda.time.DateTime;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class PendingTransaction implements Comparable<PendingTransaction>
@@ -20,6 +22,8 @@ public class PendingTransaction implements Comparable<PendingTransaction>
 	private BigDecimal amount;
 
 	private DateTime createdAt;
+
+	private List<String> signedBy = new ArrayList<> ();
 
 	public PendingTransaction ()
 	{
@@ -73,6 +77,16 @@ public class PendingTransaction implements Comparable<PendingTransaction>
 	public Address getTargetAddress ()
 	{
 		return targetAddress;
+	}
+
+	public List<String> getSignedBy ()
+	{
+		return signedBy;
+	}
+
+	public void setSignedBy (List<String> signedBy)
+	{
+		this.signedBy = signedBy;
 	}
 
 	@Override

@@ -1,6 +1,7 @@
 package com.bitsofproof.btc1k.fx;
 
 import com.bitsofproof.btc1k.server.vault.PendingTransaction;
+import com.google.common.base.Joiner;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ChangeListener;
@@ -28,6 +29,9 @@ public class PendingTransactionEntry extends HBox
 
 	@FXML
 	private Label createdAtLabel;
+
+	@FXML
+	private Label signedBy;
 
 	@FXML
 	private Button signButton;
@@ -84,6 +88,7 @@ public class PendingTransactionEntry extends HBox
 		amountLabel.setText (pt.getAmount ().toPlainString ());
 		addressLabel.setText (pt.getTargetAddress ().toString ());
 		createdAtLabel.setText (pt.getCreatedAt ().toString ());
+		signedBy.setText (Joiner.on (',').join (pt.getSignedBy ()));
 	}
 
 }

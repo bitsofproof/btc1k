@@ -195,8 +195,9 @@ public class Vault
 		return accountManager;
 	}
 
-	public void updateTransaction (BCSAPI api, PendingTransaction transaction) throws BCSAPIException
+	public void updateTransaction (BCSAPI api, PendingTransaction transaction) throws BCSAPIException, ValidationException
 	{
+		transaction.setSignedBy (getSignedBy (transaction.getTransaction ()));
 		pendingTransactions.put (transaction.getId (), transaction);
 		try
 		{

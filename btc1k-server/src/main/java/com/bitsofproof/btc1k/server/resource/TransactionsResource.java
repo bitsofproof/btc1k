@@ -71,7 +71,7 @@ public class TransactionsResource
 		{
 			vault.updateTransaction (api, transaction);
 		}
-		catch ( BCSAPIException e )
+		catch ( BCSAPIException | ValidationException e )
 		{
 			return Response.serverError ().build ();
 		}

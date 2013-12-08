@@ -35,6 +35,9 @@
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
       <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+      <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
     </rowConstraints>
+    <Label text="Signed by" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+    <Label fx:id="signedBy" text="" GridPane.columnIndex="1" GridPane.rowIndex="3" />
   </GridPane>
 </fx:root>

@@ -142,8 +142,6 @@ public class MainController
 				signTransaction (getValue ());
 			}
 		});
-
-		//refreshTransactionList ();
 	}
 
 	private void rejectTransaction (final PendingTransaction tx)
