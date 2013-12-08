@@ -27,9 +27,9 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
-import static com.bitsofproof.btc1k.fx.EitherConverters.adapter;
-import static com.bitsofproof.btc1k.fx.EitherConverters.addressConverter;
-import static com.bitsofproof.btc1k.fx.EitherConverters.validateTextField;
+import static com.bitsofproof.btc1k.fx.components.EitherConverters.adapter;
+import static com.bitsofproof.btc1k.fx.components.EitherConverters.addressConverter;
+import static com.bitsofproof.btc1k.fx.components.EitherConverters.validateTextField;
 
 public class MainController
 {
@@ -220,8 +220,7 @@ public class MainController
 		}
 		catch (ValidationException e)
 		{
-			throw new RuntimeException (e);
-			// TODO display error dialog
+			ErrorDialog.showError (e);
 		}
 	}
 

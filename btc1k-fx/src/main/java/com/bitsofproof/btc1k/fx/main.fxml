@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import com.bitsofproof.btc1k.fx.BitcoinAddressField?>
+<?import com.bitsofproof.btc1k.fx.components.BitcoinAddressField?>
 <?import java.lang.*?>
 <?import java.util.*?>
 <?import javafx.geometry.*?>
@@ -16,8 +16,8 @@
         <Label text="Target address" GridPane.columnIndex="0" GridPane.rowIndex="0" />
         <Label text="Amount (BTC)" GridPane.columnIndex="0" GridPane.rowIndex="1" />
         <Button fx:id="sendButton" defaultButton="true" mnemonicParsing="false" onAction="#sendTransaction" text="Send" GridPane.columnIndex="1" GridPane.halignment="RIGHT" GridPane.rowIndex="2" />
-        <TextField fx:id="amount" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="1" />
-        <TextField fx:id="targetAddress" prefWidth="200.0" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+        <TextField fx:id="amount" prefWidth="200.0" promptText="Amount in BTC" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        <TextField fx:id="targetAddress" prefWidth="200.0" promptText="Target address" GridPane.columnIndex="1" GridPane.rowIndex="0" />
         <columnConstraints>
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
           <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />

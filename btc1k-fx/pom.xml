@@ -86,6 +86,11 @@
 			<artifactId>guava</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>de.jensd</groupId>
+			<artifactId>fontawesomefx</artifactId>
+			<version>8.0.0</version>
+		</dependency>
 		<!-- Logging  -->
 
 		<dependency>

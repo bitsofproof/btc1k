@@ -1,11 +1,9 @@
-package com.bitsofproof.btc1k.fx;
+package com.bitsofproof.btc1k.fx.components;
 
 import com.atlassian.fugue.Either;
 import com.bitsofproof.supernode.api.Address;
 import com.bitsofproof.supernode.common.ValidationException;
 import com.google.common.base.Strings;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
 import javafx.util.StringConverter;
 
 public class BitcoinAddressField extends ObjectTextField<Either<String, Address>>

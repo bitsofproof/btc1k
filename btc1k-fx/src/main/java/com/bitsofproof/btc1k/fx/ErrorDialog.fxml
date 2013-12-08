@@ -11,15 +11,14 @@
 
 <fx:root type="javafx.scene.layout.GridPane" hgap="14.0" maxHeight="+Infinity" maxWidth="+Infinity" minHeight="-Infinity" minWidth="-Infinity" vgap="20.0" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/2.2">
   <children>
-    <Label fx:id="logoLabel" text="" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+    <Label fx:id="logoLabel" text="Error" GridPane.columnIndex="0" GridPane.rowIndex="0" />
     <VBox maxHeight="+Infinity" maxWidth="+Infinity" minHeight="-Infinity" prefWidth="400.0" spacing="7.0" GridPane.columnIndex="1" GridPane.rowIndex="0">
       <children>
-        <Label fx:id="messageLabel" text="Passphrase" textAlignment="LEFT" wrapText="true">
+        <Label fx:id="messageLabel" text="" textAlignment="LEFT" wrapText="true">
           <font>
             <Font name="System Bold" size="13.0" />
           </font>
         </Label>
-        <TextField fx:id="passphrase" prefWidth="200.0" promptText="Passphrase" />
         <Label fx:id="detailsLabel" text="" textAlignment="LEFT" wrapText="true">
           <font>
             <Font size="12.0" />
@@ -37,7 +36,7 @@
         <Pane maxWidth="+Infinity" HBox.hgrow="ALWAYS" />
         <HBox id="HBox" fx:id="okParent" alignment="CENTER">
           <children>
-            <Button id="okButton" fx:id="signButton" defaultButton="true" minWidth="80.0" mnemonicParsing="false" onAction="#onSign" text="Sign" HBox.hgrow="NEVER">
+            <Button fx:id="okButton" defaultButton="true" minWidth="80.0" mnemonicParsing="false" onAction="#ok" text="Ok" HBox.hgrow="NEVER">
               <HBox.margin>
                 <Insets left="14.0" />
               </HBox.margin>

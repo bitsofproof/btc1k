@@ -1,9 +1,12 @@
 package com.bitsofproof.btc1k.fx;
 
+import de.jensd.fx.fontawesome.AwesomeDude;
+import de.jensd.fx.fontawesome.AwesomeIcon;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -32,6 +35,8 @@ public class SignTransactionDialog extends GridPane
 			loader.setRoot (dialog);
 			loader.load ();
 
+			AwesomeDude.setIcon (dialog.logoLabel, AwesomeIcon.KEY, "60");
+
 			dialogStage.setScene (new Scene (dialog));
 			dialogStage.showAndWait ();
 
@@ -48,6 +53,9 @@ public class SignTransactionDialog extends GridPane
 
 	@FXML
 	Button signButton;
+
+	@FXML
+	Label logoLabel;
 
 	public SignTransactionDialog (Stage stage)
 	{

@@ -1,4 +1,4 @@
-package com.bitsofproof.btc1k.fx;
+package com.bitsofproof.btc1k.fx.components;
 
 import com.atlassian.fugue.Either;
 import com.bitsofproof.supernode.api.Address;

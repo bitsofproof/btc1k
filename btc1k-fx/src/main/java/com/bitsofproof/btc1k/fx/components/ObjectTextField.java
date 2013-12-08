@@ -1,4 +1,4 @@
-package com.bitsofproof.btc1k.fx;
+package com.bitsofproof.btc1k.fx.components;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ObjectProperty;
