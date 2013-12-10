@@ -15,19 +15,10 @@
  */
 package com.bitsofproof.btc1k.server;
 
-import io.dropwizard.Application;
-import io.dropwizard.setup.Bootstrap;
-import io.dropwizard.setup.Environment;
-
-import java.math.BigDecimal;
-import java.security.Security;
-
-import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import com.bitsofproof.btc1k.server.commands.TimeoutPaymentRequestCommand;
 import com.bitsofproof.btc1k.server.resource.BopShopResource;
 import com.bitsofproof.btc1k.server.vault.Vault;
+
 import com.bitsofproof.dropwizard.supernode.SupernodeBundle;
 import com.bitsofproof.dropwizard.supernode.SupernodeConfiguration;
 import com.bitsofproof.supernode.api.BCSAPI;
@@ -35,6 +26,15 @@ import com.bitsofproof.supernode.api.BCSAPIException;
 import com.bitsofproof.supernode.api.Transaction;
 import com.bitsofproof.supernode.api.TransactionOutput;
 import com.bitsofproof.supernode.common.ValidationException;
+import io.dropwizard.Application;
+import io.dropwizard.setup.Bootstrap;
+import io.dropwizard.setup.Environment;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.math.BigDecimal;
+import java.security.Security;
 
 public class Btc1kApplication extends Application<Btc1kConfiguration>
 {
@@ -61,6 +61,7 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 	public void initialize (Bootstrap<Btc1kConfiguration> bootstrap)
 	{
 		bootstrap.addBundle (supernodeBundle);
+		bootstrap.addCommand (new TimeoutPaymentRequestCommand ());
 	}
 
 	@Override
