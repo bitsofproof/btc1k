@@ -190,7 +190,7 @@ public class Vault
 				}
 				input.setScript (writer.toByteArray ());
 			}
-			if ( nsignatures >= 2 )
+			if ( nsignatures >= 2 * transaction.getInputs ().size () )
 			{
 				for ( TransactionInput input : transaction.getInputs () )
 				{
