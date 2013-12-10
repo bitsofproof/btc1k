@@ -13,6 +13,8 @@ import java.util.UUID;
 
 import org.bouncycastle.pqc.math.linearalgebra.ByteUtils;
 import org.joda.time.DateTime;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.bitsofproof.btc1k.server.resource.NamedKey;
 import com.bitsofproof.supernode.api.Address;
@@ -28,6 +30,8 @@ import com.bitsofproof.supernode.common.Key;
 import com.bitsofproof.supernode.common.ScriptFormat;
 import com.bitsofproof.supernode.common.ScriptFormat.Token;
 import com.bitsofproof.supernode.common.ValidationException;
+import com.bitsofproof.supernode.wallet.AccountListener;
+import com.bitsofproof.supernode.wallet.AccountManager;
 import com.bitsofproof.supernode.wallet.AddressListAccountManager;
 import com.bitsofproof.supernode.wallet.BaseAccountManager;
 import com.google.common.collect.Maps;
@@ -35,16 +39,18 @@ import com.google.common.collect.Ordering;
 
 public class Vault
 {
+	private static final Logger log = LoggerFactory.getLogger (Vault.class);
+
 	public class AM extends AddressListAccountManager
 	{
 		@Override
 		protected void spendNonAddressOutput (int ix, TransactionOutput source, ScriptFormat.Writer sw, Transaction transaction) throws ValidationException
 		{
+			sw.writeData (new byte[0]);
 			for ( int i = 0; i < publicKeys.size (); ++i )
 			{
 				sw.writeData (new byte[0]);
 			}
-			sw.writeData (new byte[0]);
 			sw.writeData (getCustomerScript ());
 		}
 
@@ -53,6 +59,18 @@ public class Vault
 		{
 			return getVaultAddress ();
 		}
+
+		@Override
+		public boolean updateWithTransaction (Transaction t)
+		{
+			if ( super.updateWithTransaction (t) )
+			{
+				log.info ("Vault updated with transaction " + t.getHash ());
+				return true;
+			}
+			return false;
+		}
+
 	}
 
 	private final TreeMap<String, ECPublicKey> publicKeys = new TreeMap<> ();
@@ -81,13 +99,25 @@ public class Vault
 
 	public Vault (Map<String, String> keys) throws BCSAPIException, ValidationException
 	{
-		this.accountManager = new AM ();
 		for ( Map.Entry<String, String> keyEntry : keys.entrySet () )
 		{
 			publicKeys.put (keyEntry.getKey (), new ECPublicKey (ByteUtils.fromHexString (keyEntry.getValue ()), true));
 		}
+		log.info ("Vault address: " + getVaultAddress ());
+		this.accountManager = new AM ();
 		accountManager.addAddress (getVaultAddress ());
-		accountManager.setCreated (new DateTime (2013, 12, 7, 0, 0).getMillis ());
+		accountManager.setCreated (new DateTime (2013, 12, 1, 0, 0).getMillis ());
+		accountManager.addAccountListener (new AccountListener ()
+		{
+			@Override
+			public void accountChanged (AccountManager account, Transaction t)
+			{
+				log.info ("New account balance " + fromSatoshi (account.getBalance ()) + " " +
+						fromSatoshi (account.getConfirmed ()) + " confrirmed " +
+						fromSatoshi (account.getChange ()) + " change " +
+						fromSatoshi (account.getReceiving ()) + " receiving");
+			}
+		});
 	}
 
 	private static long toSatoshi (BigDecimal btc)
@@ -102,10 +132,12 @@ public class Vault
 
 	public PendingTransaction createTransaction (Address targetAddress, BigDecimal btcAmount) throws ValidationException
 	{
+		log.info ("Create transaction to pay " + btcAmount + " BTC to " + targetAddress + " vault has " + fromSatoshi (accountManager.getBalance ()));
 		Transaction tx = accountManager.pay (targetAddress, toSatoshi (btcAmount), true);
 		PendingTransaction pendingTransaction = new PendingTransaction (tx, btcAmount, targetAddress, "");
 
 		pendingTransactions.put (pendingTransaction.getId (), pendingTransaction);
+		log.info ("Created transaction to pay " + btcAmount + " BTC to " + targetAddress);
 		return pendingTransaction;
 	}
 
@@ -130,6 +162,9 @@ public class Vault
 			int slot = publicKeys.headMap (name).size () + 1;
 			int i = 0;
 
+			System.out.println (transaction.toWireDump ());
+			log.info ("Signing with " + name);
+			int nsignatures = 0;
 			for ( TransactionInput input : transaction.getInputs () )
 			{
 				List<Token> tokens = ScriptFormat.parse (input.getScript ());
@@ -143,12 +178,43 @@ public class Vault
 				tokens.get (slot).data = sigPlusType;
 
 				ScriptFormat.Writer writer = new ScriptFormat.Writer ();
+				int pos = 0;
 				for ( Token t : tokens )
 				{
 					writer.writeToken (t);
+					if ( pos > 0 && pos < 4 && t.op != ScriptFormat.Opcode.OP_FALSE )
+					{
+						++nsignatures;
+					}
+					++pos;
 				}
 				input.setScript (writer.toByteArray ());
 			}
+			if ( nsignatures >= 2 )
+			{
+				for ( TransactionInput input : transaction.getInputs () )
+				{
+					List<Token> tokens = ScriptFormat.parse (input.getScript ());
+					Iterator<Token> ti = tokens.iterator ();
+					ti.next ();
+					while ( ti.hasNext () )
+					{
+						Token t = ti.next ();
+						if ( t.op == ScriptFormat.Opcode.OP_FALSE )
+						{
+							ti.remove ();
+						}
+					}
+					ScriptFormat.Writer writer = new ScriptFormat.Writer ();
+					for ( Token t : tokens )
+					{
+						writer.writeToken (t);
+					}
+					input.setScript (writer.toByteArray ());
+				}
+			}
+			transaction.computeHash ();
+			log.info ("Transaction hash after sign " + transaction.getHash ());
 		}
 		catch ( UnsupportedEncodingException e )
 		{
@@ -164,10 +230,13 @@ public class Vault
 			Iterator<String> it = publicKeys.keySet ().iterator ();
 			for ( int i = 1; i < tokens.size () - 1; ++i )
 			{
-				String name = it.next ();
-				if ( tokens.get (i).op != ScriptFormat.Opcode.OP_FALSE )
+				if ( tokens.get (i).data != null )
 				{
-					names.add (name);
+					String name = it.next ();
+					if ( tokens.get (i).op != ScriptFormat.Opcode.OP_FALSE )
+					{
+						names.add (name);
+					}
 				}
 			}
 			break;
@@ -201,11 +270,19 @@ public class Vault
 		pendingTransactions.put (transaction.getId (), transaction);
 		try
 		{
-			api.sendTransaction (transaction.getTransaction ());
-			pendingTransactions.remove (transaction.getId ());
+			transaction.getTransaction ().computeHash ();
+			log.info ("Updated " + transaction.getId () + " to " + transaction.getTransaction ().getHash ());
+			if ( getSignedBy (transaction.getTransaction ()).size () >= 2 )
+			{
+				api.sendTransaction (transaction.getTransaction ());
+				log.info ("Successfully sent " + transaction.getTransaction ().getHash ());
+				log.info ("transaction: " + transaction.getTransaction ().toWireDump ());
+				pendingTransactions.remove (transaction.getId ());
+			}
 		}
 		catch ( BCSAPIException e )
 		{
+			log.info ("Transaction rejected " + transaction.getTransaction ().getHash ());
 			throw e;
 		}
 	}

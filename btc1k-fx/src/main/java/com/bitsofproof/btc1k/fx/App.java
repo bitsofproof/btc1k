@@ -1,10 +1,10 @@
 package com.bitsofproof.btc1k.fx;
 
-import com.bitsofproof.btc1k.fx.rest.RestClient;
-import com.bitsofproof.btc1k.server.resource.NamedKey;
-import com.bitsofproof.btc1k.server.vault.Vault;
-import com.bitsofproof.supernode.common.ECPublicKey;
-import com.sun.jersey.api.client.GenericType;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javafx.application.Application;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -14,15 +14,15 @@ import javafx.stage.Stage;
 import javafx.stage.StageBuilder;
 
 import javax.ws.rs.core.MediaType;
-import java.net.URI;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+
+import com.bitsofproof.btc1k.fx.rest.RestClient;
+import com.bitsofproof.btc1k.server.resource.NamedKey;
+import com.bitsofproof.btc1k.server.vault.Vault;
+import com.sun.jersey.api.client.GenericType;
 
 public class App extends Application
 {
-	private static final URI SERVER_URI = URI.create ("http://localhost:8280/btc1k");
+	private static final URI SERVER_URI = URI.create ("http://api.bitsofproof.com:8280/btc1k");
 
 	public static App instance;
 
@@ -38,7 +38,6 @@ public class App extends Application
 		restClient = new RestClient (SERVER_URI);
 		vault = new Vault (fetchKeys ());
 
-
 		FXMLLoader loader = new FXMLLoader (App.class.getResource ("main.fxml"));
 		Parent root = (Parent) loader.load ();
 
@@ -47,8 +46,8 @@ public class App extends Application
 				.stylesheets ("com/bitsofproof/btc1k/fx/main.css")
 				.build ();
 
-		StageBuilder.create()
-				.title("BTC-1K")
+		StageBuilder.create ()
+				.title ("BTC-1K")
 				.scene (scene)
 				.minWidth (600)
 				.minHeight (400)
@@ -61,13 +60,15 @@ public class App extends Application
 	public Map<String, String> fetchKeys ()
 	{
 		List<NamedKey> keys = restClient.getBaseResource ()
-		                                .path ("/transactions/keys")
-		                                .accept (MediaType.APPLICATION_JSON)
-		                                .get (new GenericType<List<NamedKey>> () {});
+				.path ("/transactions/keys")
+				.accept (MediaType.APPLICATION_JSON)
+				.get (new GenericType<List<NamedKey>> ()
+				{
+				});
 		Map<String, String> keymap = new HashMap<> ();
-		for (NamedKey key : keys)
+		for ( NamedKey key : keys )
 		{
-			keymap.put(key.getName (), key.getKey ());
+			keymap.put (key.getName (), key.getKey ());
 		}
 		return keymap;
 	}

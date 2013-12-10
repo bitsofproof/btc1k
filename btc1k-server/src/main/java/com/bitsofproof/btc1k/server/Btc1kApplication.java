@@ -70,7 +70,7 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 		vault = configuration.getVaultFactory ().createVault ();
 		vault.getAccountManager ().sync (api);
 		api.registerTransactionListener (vault.getAccountManager ());
-
+		System.out.println ("Vault " + vault.getVaultAddress ());
 		environment.jersey ().register (new BopShopResource (
 				supernodeBundle.getBCSAPI (),
 				vault,
