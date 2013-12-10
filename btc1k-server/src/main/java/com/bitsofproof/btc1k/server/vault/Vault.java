@@ -15,9 +15,7 @@
  */
 package com.bitsofproof.btc1k.server.vault;
 
-import java.io.UnsupportedEncodingException;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -40,6 +38,7 @@ import com.bitsofproof.supernode.api.TransactionInput;
 import com.bitsofproof.supernode.api.TransactionOutput;
 import com.bitsofproof.supernode.common.ECKeyPair;
 import com.bitsofproof.supernode.common.ECPublicKey;
+import com.bitsofproof.supernode.common.ExtendedKey;
 import com.bitsofproof.supernode.common.Hash;
 import com.bitsofproof.supernode.common.Key;
 import com.bitsofproof.supernode.common.ScriptFormat;
@@ -48,6 +47,7 @@ import com.bitsofproof.supernode.common.ValidationException;
 import com.bitsofproof.supernode.wallet.AccountListener;
 import com.bitsofproof.supernode.wallet.AccountManager;
 import com.bitsofproof.supernode.wallet.AddressListAccountManager;
+import com.bitsofproof.supernode.wallet.BIP39;
 import com.bitsofproof.supernode.wallet.BaseAccountManager;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
@@ -156,84 +156,78 @@ public class Vault
 		return pendingTransaction;
 	}
 
-	public void sign (Transaction transaction, String passphrase) throws ValidationException
+	public void sign (Transaction transaction, String mnemonic) throws ValidationException
 	{
-		try
+		ECKeyPair key = (ECKeyPair) ExtendedKey.create (BIP39.decode (mnemonic, "")).getKey (0);
+		String name = null;
+		for ( Map.Entry<String, ECPublicKey> e : publicKeys.entrySet () )
 		{
-			ECKeyPair key = new ECKeyPair (new BigInteger (1, Hash.sha256 (passphrase.getBytes ("UTF-8"))), true);
-			String name = null;
-			for ( Map.Entry<String, ECPublicKey> e : publicKeys.entrySet () )
+			if ( Arrays.equals (e.getValue ().getPublic (), key.getPublic ()) )
 			{
-				if ( Arrays.equals (e.getValue ().getPublic (), key.getPublic ()) )
+				name = e.getKey ();
+			}
+		}
+		if ( name == null )
+		{
+			throw new ValidationException ("Not a known key");
+		}
+
+		int slot = publicKeys.headMap (name).size () + 1;
+		int i = 0;
+
+		System.out.println (transaction.toWireDump ());
+		log.info ("Signing with " + name);
+		int nsignatures = 0;
+		for ( TransactionInput input : transaction.getInputs () )
+		{
+			List<Token> tokens = ScriptFormat.parse (input.getScript ());
+
+			byte[] sig =
+					key.sign (BaseAccountManager.hashTransaction (transaction, i++, ScriptFormat.SIGHASH_ALL, getCustomerScript ()));
+			byte[] sigPlusType = new byte[sig.length + 1];
+			System.arraycopy (sig, 0, sigPlusType, 0, sig.length);
+			sigPlusType[sigPlusType.length - 1] = (byte) (ScriptFormat.SIGHASH_ALL & 0xff);
+			tokens.get (slot).op = ScriptFormat.Opcode.values ()[sigPlusType.length];
+			tokens.get (slot).data = sigPlusType;
+
+			ScriptFormat.Writer writer = new ScriptFormat.Writer ();
+			int pos = 0;
+			for ( Token t : tokens )
+			{
+				writer.writeToken (t);
+				if ( pos > 0 && pos < 4 && t.op != ScriptFormat.Opcode.OP_FALSE )
 				{
-					name = e.getKey ();
+					++nsignatures;
 				}
+				++pos;
 			}
-			if ( name == null )
-			{
-				throw new ValidationException ("Not a known key");
-			}
-
-			int slot = publicKeys.headMap (name).size () + 1;
-			int i = 0;
-
-			System.out.println (transaction.toWireDump ());
-			log.info ("Signing with " + name);
-			int nsignatures = 0;
+			input.setScript (writer.toByteArray ());
+		}
+		if ( nsignatures >= 2 * transaction.getInputs ().size () )
+		{
 			for ( TransactionInput input : transaction.getInputs () )
 			{
 				List<Token> tokens = ScriptFormat.parse (input.getScript ());
-
-				byte[] sig =
-						key.sign (BaseAccountManager.hashTransaction (transaction, i++, ScriptFormat.SIGHASH_ALL, getCustomerScript ()));
-				byte[] sigPlusType = new byte[sig.length + 1];
-				System.arraycopy (sig, 0, sigPlusType, 0, sig.length);
-				sigPlusType[sigPlusType.length - 1] = (byte) (ScriptFormat.SIGHASH_ALL & 0xff);
-				tokens.get (slot).op = ScriptFormat.Opcode.values ()[sigPlusType.length];
-				tokens.get (slot).data = sigPlusType;
-
+				Iterator<Token> ti = tokens.iterator ();
+				ti.next ();
+				while ( ti.hasNext () )
+				{
+					Token t = ti.next ();
+					if ( t.op == ScriptFormat.Opcode.OP_FALSE )
+					{
+						ti.remove ();
+					}
+				}
 				ScriptFormat.Writer writer = new ScriptFormat.Writer ();
-				int pos = 0;
 				for ( Token t : tokens )
 				{
 					writer.writeToken (t);
-					if ( pos > 0 && pos < 4 && t.op != ScriptFormat.Opcode.OP_FALSE )
-					{
-						++nsignatures;
-					}
-					++pos;
 				}
 				input.setScript (writer.toByteArray ());
 			}
-			if ( nsignatures >= 2 * transaction.getInputs ().size () )
-			{
-				for ( TransactionInput input : transaction.getInputs () )
-				{
-					List<Token> tokens = ScriptFormat.parse (input.getScript ());
-					Iterator<Token> ti = tokens.iterator ();
-					ti.next ();
-					while ( ti.hasNext () )
-					{
-						Token t = ti.next ();
-						if ( t.op == ScriptFormat.Opcode.OP_FALSE )
-						{
-							ti.remove ();
-						}
-					}
-					ScriptFormat.Writer writer = new ScriptFormat.Writer ();
-					for ( Token t : tokens )
-					{
-						writer.writeToken (t);
-					}
-					input.setScript (writer.toByteArray ());
-				}
-			}
-			transaction.computeHash ();
-			log.info ("Transaction hash after sign " + transaction.getHash ());
 		}
-		catch ( UnsupportedEncodingException e )
-		{
-		}
+		transaction.computeHash ();
+		log.info ("Transaction hash after sign " + transaction.getHash ());
 	}
 
 	List<String> getSignedBy (Transaction transaction) throws ValidationException
