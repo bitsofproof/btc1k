@@ -1,7 +1,14 @@
 supernode:
-  brokerUrl: tcp://production.bitsofproof.com:63616
-  username: explorer
-  password:
+  brokerUrl: test
+  
+vault:
+ keys:
+   A: "031d11db38972b712a9fe1fc023577c7ae3ddb4a3004187d41c45121eecfdbb5b7"
+   B: "0207ec36911b6ad2382860d32989c7b8728e9489d7bbc94a6b5509ef0029be1288"
+   C: "024ea9fac06f666a4adc3fc1357b7bec1fd0bdece2b9d08579226a8ebde53058e4"
+bopShopKey: ""
+customerId: 0
+passphrase: XXXXXX
 
 server:
   applicationConnectors:

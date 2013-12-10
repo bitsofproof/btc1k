@@ -75,7 +75,7 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 		environment.jersey ().register (new BopShopResource (
 				supernodeBundle.getBCSAPI (),
 				vault,
-				configuration.getMasterKey (),
+				configuration.getBopShopKey (),
 				configuration.getCustomerId (),
 				configuration.getPassphrase ()
 				)/* .processCleared () */);

@@ -56,15 +56,15 @@ public class Btc1kConfiguration extends Configuration
 	@JsonProperty ("vault")
 	VaultConfiguration vaultFactory;
 
-	private String masterKey;
+	private String bopShopKey;
 
 	private Integer customerId;
 
 	private String passphrase;
 
-	public ExtendedKey getMasterKey () throws ValidationException
+	public ExtendedKey getBopShopKey () throws ValidationException
 	{
-		return ExtendedKey.parse (masterKey);
+		return ExtendedKey.parse (bopShopKey);
 	}
 
 	public Integer getCustomerId ()
