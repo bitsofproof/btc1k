@@ -16,6 +16,7 @@
 package com.bitsofproof.btc1k.server.vault;
 
 import java.math.BigDecimal;
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -154,6 +155,25 @@ public class Vault
 		pendingTransactions.put (pendingTransaction.getId (), pendingTransaction);
 		log.info ("Created transaction to pay " + btcAmount + " BTC to " + targetAddress);
 		return pendingTransaction;
+	}
+
+	public static class RandomKey
+	{
+		private String mnemonic;
+		private String publicKey;
+	}
+
+	private final SecureRandom random = new SecureRandom ();
+
+	public RandomKey generateRandomKey () throws ValidationException
+	{
+		byte[] entropy = new byte[16];
+		random.nextBytes (entropy);
+
+		RandomKey rk = new RandomKey ();
+		rk.mnemonic = BIP39.encode (entropy, "");
+		rk.publicKey = ByteUtils.toHexString (ExtendedKey.create (entropy).getKey (0).getPublic ());
+		return rk;
 	}
 
 	public void sign (Transaction transaction, String mnemonic) throws ValidationException
