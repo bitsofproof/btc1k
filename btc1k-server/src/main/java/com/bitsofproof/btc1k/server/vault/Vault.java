@@ -67,7 +67,7 @@ public class Vault
 			{
 				sw.writeData (new byte[0]);
 			}
-			sw.writeData (getCustomerScript ());
+			sw.writeData (getVaultScript ());
 		}
 
 		@Override
@@ -95,7 +95,7 @@ public class Vault
 
 	private final Map<UUID, PendingTransaction> pendingTransactions = Maps.newConcurrentMap ();
 
-	private byte[] getCustomerScript () throws ValidationException
+	private byte[] getVaultScript () throws ValidationException
 	{
 		ScriptFormat.Writer writer = new ScriptFormat.Writer ();
 		writer.writeToken (new ScriptFormat.Token (ScriptFormat.Opcode.OP_2));
@@ -110,7 +110,7 @@ public class Vault
 
 	public Address getVaultAddress () throws ValidationException
 	{
-		return new Address (Address.Type.P2SH, Hash.keyHash (getCustomerScript ()));
+		return new Address (Address.Type.P2SH, Hash.keyHash (getVaultScript ()));
 	}
 
 	public Vault (Map<String, String> keys) throws BCSAPIException, ValidationException
@@ -203,7 +203,7 @@ public class Vault
 			List<Token> tokens = ScriptFormat.parse (input.getScript ());
 
 			byte[] sig =
-					key.sign (BaseAccountManager.hashTransaction (transaction, i++, ScriptFormat.SIGHASH_ALL, getCustomerScript ()));
+					key.sign (BaseAccountManager.hashTransaction (transaction, i++, ScriptFormat.SIGHASH_ALL, getVaultScript ()));
 			byte[] sigPlusType = new byte[sig.length + 1];
 			System.arraycopy (sig, 0, sigPlusType, 0, sig.length);
 			sigPlusType[sigPlusType.length - 1] = (byte) (ScriptFormat.SIGHASH_ALL & 0xff);
