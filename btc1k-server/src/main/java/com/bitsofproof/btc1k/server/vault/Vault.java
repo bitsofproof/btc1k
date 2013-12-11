@@ -159,8 +159,24 @@ public class Vault
 
 	public static class RandomKey
 	{
-		private String mnemonic;
-		private String publicKey;
+		private final String mnemonic;
+		private final String publicKey;
+
+		public RandomKey (String mnemonic, String publicKey)
+		{
+			this.mnemonic = mnemonic;
+			this.publicKey = publicKey;
+		}
+
+		public String getMnemonic ()
+		{
+			return mnemonic;
+		}
+
+		public String getPublicKey ()
+		{
+			return publicKey;
+		}
 	}
 
 	private final SecureRandom random = new SecureRandom ();
@@ -170,10 +186,8 @@ public class Vault
 		byte[] entropy = new byte[16];
 		random.nextBytes (entropy);
 
-		RandomKey rk = new RandomKey ();
-		rk.mnemonic = BIP39.encode (entropy, "");
-		rk.publicKey = ByteUtils.toHexString (ExtendedKey.create (entropy).getKey (0).getPublic ());
-		return rk;
+		return new RandomKey (BIP39.encode (entropy, ""),
+		                      ByteUtils.toHexString (ExtendedKey.create (entropy).getKey (0).getPublic ()));
 	}
 
 	public void sign (Transaction transaction, String mnemonic) throws ValidationException

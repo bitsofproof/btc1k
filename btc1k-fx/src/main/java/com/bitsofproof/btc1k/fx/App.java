@@ -1,6 +1,7 @@
 package com.bitsofproof.btc1k.fx;
 
 import java.net.URI;
+import java.security.Security;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +20,7 @@ import com.bitsofproof.btc1k.fx.rest.RestClient;
 import com.bitsofproof.btc1k.server.resource.NamedKey;
 import com.bitsofproof.btc1k.server.vault.Vault;
 import com.sun.jersey.api.client.GenericType;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class App extends Application
 {
@@ -50,7 +52,7 @@ public class App extends Application
 				.title ("BTC-1K")
 				.scene (scene)
 				.minWidth (600)
-				.minHeight (400)
+				.minHeight (600)
 				.applyTo (primaryStage);
 
 		primaryStage.show ();
@@ -75,6 +77,7 @@ public class App extends Application
 
 	public static void main (String[] args)
 	{
+		Security.addProvider (new BouncyCastleProvider ());
 		launch (args);
 	}
 

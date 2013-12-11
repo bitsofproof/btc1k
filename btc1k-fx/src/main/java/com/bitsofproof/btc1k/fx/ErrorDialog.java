@@ -42,7 +42,7 @@ public class ErrorDialog extends GridPane
 
 			dialog.messageLabel.setText (e.getMessage ());
 
-			AwesomeDude.setIcon (dialog.logoLabel, AwesomeIcon.WARNING_SIGN, "60");
+			AwesomeDude.setIcon (dialog.logoLabel, AwesomeIcon.WARNING, "60");
 
 			dialogStage.setScene (new Scene (dialog));
 			dialogStage.showAndWait ();

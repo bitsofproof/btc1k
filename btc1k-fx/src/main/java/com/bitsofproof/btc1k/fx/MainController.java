@@ -4,12 +4,14 @@ import com.atlassian.fugue.Either;
 import com.bitsofproof.btc1k.fx.rest.RestTask;
 import com.bitsofproof.btc1k.server.resource.NewTransaction;
 import com.bitsofproof.btc1k.server.vault.PendingTransaction;
+import com.bitsofproof.btc1k.server.vault.Vault;
 import com.bitsofproof.supernode.api.Address;
 import com.bitsofproof.supernode.common.ValidationException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
-import javafx.beans.binding.Binding;
+import de.jensd.fx.fontawesome.AwesomeDude;
+import de.jensd.fx.fontawesome.AwesomeIcon;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.BooleanBinding;
 import javafx.beans.property.ObjectProperty;
@@ -19,10 +21,7 @@ import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
-import javafx.scene.control.TitledPane;
+import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.util.converter.BigDecimalStringConverter;
 
@@ -31,14 +30,15 @@ import java.math.BigDecimal;
 import java.net.URI;
 import java.util.List;
 
-import static com.bitsofproof.btc1k.fx.components.EitherConverters.adapter;
-import static com.bitsofproof.btc1k.fx.components.EitherConverters.addressConverter;
-import static com.bitsofproof.btc1k.fx.components.EitherConverters.validateTextField;
+import static com.bitsofproof.btc1k.fx.components.EitherConverters.*;
 
 public class MainController
 {
 	@FXML
-	TitledPane newTransactionPane;
+	Button refreshButton;
+
+	@FXML
+	TabPane toolsPane;
 
 	@FXML
 	TextField targetAddress;
@@ -54,6 +54,12 @@ public class MainController
 	Button sendButton;
 
 	@FXML
+	TextField mnemonicField;
+
+	@FXML
+	TextField publicKeyField;
+
+	@FXML
 	Label messageLabel;
 
 	@FXML
@@ -61,17 +67,17 @@ public class MainController
 
 	public void initialize ()
 	{
-		refreshTransactionList ();
-
 		messageLabel.textProperty ().bind (Bindings.selectString (App.instance.restClient.currentTaskProperty (), "title"));
+		AwesomeDude.setIcon (refreshButton, AwesomeIcon.REFRESH);
+		refreshButton.setTooltip (new Tooltip ("Refresh transaction list"));
 
-		newTransactionPane.setExpanded (false);
-		newTransactionPane.expandedProperty ().addListener (new ChangeListener<Boolean> ()
-		{
-			public void changed (ObservableValue<? extends Boolean> observableValue, Boolean aBoolean, Boolean expanded)
+		toolsPane.getSelectionModel ().selectedItemProperty ().addListener (new ChangeListener<Tab> () {
+			public void changed (ObservableValue<? extends Tab> v, Tab oldTab, Tab currentTab)
 			{
-				if (expanded)
-					targetAddress.requestFocus ();
+				if ("keygenTab".equals(oldTab.getId ()))
+				{
+					clearKeyData();
+				}
 			}
 		});
 
@@ -89,8 +95,28 @@ public class MainController
 				return (address.get () == null || address.get ().isLeft () || btc.get () == null || btc.get ().isLeft ());
 			}
 		});
-		//sendButton.disableProperty ().bind (address.isNull ().or (btc.isNull ()));
+
 		refreshTransactionList ();
+	}
+
+	private void clearKeyData ()
+	{
+		mnemonicField.clear ();
+		publicKeyField.clear ();
+	}
+
+	public void generateKeyData()
+	{
+		try
+		{
+			Vault.RandomKey key = App.instance.vault.generateRandomKey ();
+			mnemonicField.setText (key.getMnemonic ());
+			publicKeyField.setText (key.getPublicKey ());
+		}
+		catch (ValidationException e)
+		{
+			e.printStackTrace ();  //To change body of catch statement use File | Settings | File Templates.
+		}
 	}
 
 	public void refreshTransactionList ()
