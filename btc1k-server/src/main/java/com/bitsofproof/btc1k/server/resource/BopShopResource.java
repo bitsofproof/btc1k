@@ -32,6 +32,8 @@ import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
 
+import com.bitsofproof.supernode.common.*;
+import com.sun.jersey.core.util.Base64;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.HttpClient;
@@ -47,10 +49,6 @@ import com.bitsofproof.supernode.api.BCSAPIException;
 import com.bitsofproof.supernode.api.Transaction;
 import com.bitsofproof.supernode.api.TransactionInput;
 import com.bitsofproof.supernode.api.TransactionOutput;
-import com.bitsofproof.supernode.common.ExtendedKey;
-import com.bitsofproof.supernode.common.Key;
-import com.bitsofproof.supernode.common.ScriptFormat;
-import com.bitsofproof.supernode.common.ValidationException;
 import com.bitsofproof.supernode.wallet.BaseAccountManager;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -207,7 +205,7 @@ public class BopShopResource
 
 	private String executeGet (HttpGet get) throws IOException, ClientProtocolException, UnsupportedEncodingException
 	{
-		String authorizationString = "Basic " + org.apache.shiro.codec.Base64.encodeToString ((customerId + ":" + password).getBytes ());
+		String authorizationString = "Basic " + new String(Base64.encode ((customerId + ":" + password).getBytes ()));
 		get.setHeader ("Authorization", authorizationString);
 		HttpResponse response = client.execute (get);
 		BufferedReader in = new BufferedReader (new InputStreamReader (response.getEntity ().getContent (), "UTF-8"));
