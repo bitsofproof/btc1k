@@ -169,21 +169,28 @@ public class BopShopResource
 	{
 		HttpGet get = new HttpGet ("https://api.bitsofproof.com/mbs/1/paymentRequest?state=CLEARED");
 		ObjectMapper mapper = new ObjectMapper ();
-		BopShopRequestList list = mapper.readValue (executeGet (get), BopShopRequestList.class);
-		if ( list.get_embedded () != null )
+		try
 		{
-			Object item = list.get_embedded ().get ("item");
-			if ( item instanceof List )
+			BopShopRequestList list = mapper.readValue (executeGet (get), BopShopRequestList.class);
+			if ( list.get_embedded () != null )
 			{
-				for ( Map<String, Object> o : (ArrayList<Map<String, Object>>) item )
+				Object item = list.get_embedded ().get ("item");
+				if ( item instanceof List )
 				{
-					processOneCleared (o);
+					for ( Map<String, Object> o : (ArrayList<Map<String, Object>>) item )
+					{
+						processOneCleared (o);
+					}
+				}
+				else
+				{
+					processOneCleared ((Map<String, Object>) item);
 				}
 			}
-			else
-			{
-				processOneCleared ((Map<String, Object>) item);
-			}
+		}
+		catch ( Exception e )
+		{
+			log.warn ("Can not get cleared requests list", e);
 		}
 		return this;
 	}
