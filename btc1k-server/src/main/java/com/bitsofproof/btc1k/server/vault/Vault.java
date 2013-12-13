@@ -325,23 +325,26 @@ public class Vault
 	public void updateTransaction (BCSAPI api, PendingTransaction transaction) throws BCSAPIException, ValidationException
 	{
 		transaction.setSignedBy (getSignedBy (transaction.getTransaction ()));
-		pendingTransactions.put (transaction.getId (), transaction);
-		try
+		if ( transaction.getSignedBy ().size () > 0 )
 		{
-			transaction.getTransaction ().computeHash ();
-			log.info ("Updated " + transaction.getId () + " to " + transaction.getTransaction ().getHash ());
-			if ( getSignedBy (transaction.getTransaction ()).size () >= 2 )
+			pendingTransactions.put (transaction.getId (), transaction);
+			try
 			{
-				api.sendTransaction (transaction.getTransaction ());
-				log.info ("Successfully sent " + transaction.getTransaction ().getHash ());
-				log.info ("transaction: " + transaction.getTransaction ().toWireDump ());
-				pendingTransactions.remove (transaction.getId ());
+				transaction.getTransaction ().computeHash ();
+				log.info ("Updated " + transaction.getId () + " to " + transaction.getTransaction ().getHash ());
+				if ( getSignedBy (transaction.getTransaction ()).size () >= 2 )
+				{
+					api.sendTransaction (transaction.getTransaction ());
+					log.info ("Successfully sent " + transaction.getTransaction ().getHash ());
+					log.info ("transaction: " + transaction.getTransaction ().toWireDump ());
+					pendingTransactions.remove (transaction.getId ());
+				}
 			}
-		}
-		catch ( BCSAPIException e )
-		{
-			log.info ("Transaction rejected " + transaction.getTransaction ().getHash ());
-			throw e;
+			catch ( BCSAPIException e )
+			{
+				log.info ("Transaction rejected " + transaction.getTransaction ().getHash ());
+				throw e;
+			}
 		}
 	}
 
