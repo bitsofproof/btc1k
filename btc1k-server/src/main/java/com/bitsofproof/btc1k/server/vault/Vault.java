@@ -151,9 +151,6 @@ public class Vault
 		log.info ("Create transaction to pay " + btcAmount + " BTC to " + targetAddress + " vault has " + fromSatoshi (accountManager.getBalance ()));
 		Transaction tx = accountManager.pay (targetAddress, toSatoshi (btcAmount), true);
 		PendingTransaction pendingTransaction = new PendingTransaction (tx, btcAmount, targetAddress, "");
-
-		pendingTransactions.put (pendingTransaction.getId (), pendingTransaction);
-		log.info ("Created transaction to pay " + btcAmount + " BTC to " + targetAddress);
 		return pendingTransaction;
 	}
 
@@ -187,10 +184,10 @@ public class Vault
 		random.nextBytes (entropy);
 
 		return new RandomKey (BIP39.encode (entropy, ""),
-		                      ByteUtils.toHexString (ExtendedKey.create (entropy).getKey (0).getPublic ()));
+				ByteUtils.toHexString (ExtendedKey.create (entropy).getKey (0).getPublic ()));
 	}
 
-	public void sign (Transaction transaction, String mnemonic) throws ValidationException
+	public void sign (PendingTransaction pendingTransaction, String mnemonic) throws ValidationException
 	{
 		ECKeyPair key = (ECKeyPair) ExtendedKey.create (BIP39.decode (mnemonic, "")).getKey (0);
 		String name = null;
@@ -209,7 +206,25 @@ public class Vault
 		int slot = publicKeys.headMap (name).size () + 1;
 		int i = 0;
 
-		System.out.println (transaction.toWireDump ());
+		Transaction transaction = pendingTransaction.getTransaction ();
+		long amount = 0;
+		for ( TransactionOutput out : transaction.getOutputs () )
+		{
+			if ( !out.getOutputAddress ().equals (pendingTransaction.getTargetAddress ()) &&
+					!out.getOutputAddress ().equals (getVaultAddress ()) )
+			{
+				throw new ValidationException ("Transaction address does not match the initiated");
+			}
+			if ( out.getOutputAddress ().equals (pendingTransaction.getTargetAddress ()) )
+			{
+				amount += out.getValue ();
+			}
+		}
+		if ( BigDecimal.valueOf (amount).movePointLeft (8).compareTo (pendingTransaction.getAmount ()) != 0 )
+		{
+			throw new ValidationException ("Transaction amount not match the initiated");
+		}
+
 		log.info ("Signing with " + name);
 		int nsignatures = 0;
 		for ( TransactionInput input : transaction.getInputs () )

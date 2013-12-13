@@ -1,5 +1,33 @@
 package com.bitsofproof.btc1k.fx;
 
+import static com.bitsofproof.btc1k.fx.components.EitherConverters.adapter;
+import static com.bitsofproof.btc1k.fx.components.EitherConverters.addressConverter;
+import static com.bitsofproof.btc1k.fx.components.EitherConverters.validateTextField;
+
+import java.math.BigDecimal;
+import java.net.URI;
+import java.util.List;
+
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.Tab;
+import javafx.scene.control.TabPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
+import javafx.scene.layout.VBox;
+import javafx.util.converter.BigDecimalStringConverter;
+
+import javax.ws.rs.core.MediaType;
+
 import com.atlassian.fugue.Either;
 import com.bitsofproof.btc1k.fx.rest.RestTask;
 import com.bitsofproof.btc1k.server.resource.NewTransaction;
@@ -10,27 +38,9 @@ import com.bitsofproof.supernode.common.ValidationException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
+
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.fxml.FXML;
-import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
-import javafx.util.converter.BigDecimalStringConverter;
-
-import javax.ws.rs.core.MediaType;
-import java.math.BigDecimal;
-import java.net.URI;
-import java.util.List;
-
-import static com.bitsofproof.btc1k.fx.components.EitherConverters.*;
 
 public class MainController
 {
@@ -71,12 +81,14 @@ public class MainController
 		AwesomeDude.setIcon (refreshButton, AwesomeIcon.REFRESH);
 		refreshButton.setTooltip (new Tooltip ("Refresh transaction list"));
 
-		toolsPane.getSelectionModel ().selectedItemProperty ().addListener (new ChangeListener<Tab> () {
+		toolsPane.getSelectionModel ().selectedItemProperty ().addListener (new ChangeListener<Tab> ()
+		{
+			@Override
 			public void changed (ObservableValue<? extends Tab> v, Tab oldTab, Tab currentTab)
 			{
-				if ("keygenTab".equals(oldTab.getId ()))
+				if ( "keygenTab".equals (oldTab.getId ()) )
 				{
-					clearKeyData();
+					clearKeyData ();
 				}
 			}
 		});
@@ -90,6 +102,7 @@ public class MainController
 				bind (address, btc);
 			}
 
+			@Override
 			protected boolean computeValue ()
 			{
 				return (address.get () == null || address.get ().isLeft () || btc.get () == null || btc.get ().isLeft ());
@@ -105,7 +118,7 @@ public class MainController
 		publicKeyField.clear ();
 	}
 
-	public void generateKeyData()
+	public void generateKeyData ()
 	{
 		try
 		{
@@ -113,9 +126,9 @@ public class MainController
 			mnemonicField.setText (key.getMnemonic ());
 			publicKeyField.setText (key.getPublicKey ());
 		}
-		catch (ValidationException e)
+		catch ( ValidationException e )
 		{
-			e.printStackTrace ();  //To change body of catch statement use File | Settings | File Templates.
+			e.printStackTrace (); // To change body of catch statement use File | Settings | File Templates.
 		}
 	}
 
@@ -127,8 +140,10 @@ public class MainController
 			protected List<PendingTransaction> call (WebResource resource)
 			{
 				return resource.path ("/transactions/all")
-				               .accept (MediaType.APPLICATION_JSON)
-				               .get (new GenericType<List<PendingTransaction>> () {});
+						.accept (MediaType.APPLICATION_JSON)
+						.get (new GenericType<List<PendingTransaction>> ()
+						{
+						});
 			}
 
 			@Override
@@ -144,7 +159,7 @@ public class MainController
 	private void doRefreshTransactionList (List<PendingTransaction> transactionList)
 	{
 		transactionListPane.getChildren ().clear ();
-		for (PendingTransaction pendingTransaction : transactionList)
+		for ( PendingTransaction pendingTransaction : transactionList )
 		{
 			transactionListPane.getChildren ().add (createEntry (pendingTransaction));
 		}
@@ -155,6 +170,7 @@ public class MainController
 		final PendingTransactionEntry entry = new PendingTransactionEntry (pt);
 		entry.signHandler (new EventHandler<ActionEvent> ()
 		{
+			@Override
 			public void handle (ActionEvent actionEvent)
 			{
 				signTransaction (pt);
@@ -162,6 +178,7 @@ public class MainController
 		});
 		entry.rejectHandler (new EventHandler<ActionEvent> ()
 		{
+			@Override
 			public void handle (ActionEvent actionEvent)
 			{
 				rejectTransaction (pt);
@@ -201,8 +218,8 @@ public class MainController
 			protected ClientResponse call (WebResource resource)
 			{
 				return resource.path ("/transactions/" + tx.getId ())
-				               .accept (MediaType.APPLICATION_JSON)
-				               .delete (ClientResponse.class);
+						.accept (MediaType.APPLICATION_JSON)
+						.delete (ClientResponse.class);
 			}
 
 			@Override
@@ -233,16 +250,16 @@ public class MainController
 		String passphrase = SignTransactionDialog.requestPassphrase ();
 		try
 		{
-			App.instance.vault.sign (value.getTransaction (), passphrase);
+			App.instance.vault.sign (value, passphrase);
 			App.instance.restClient.submitRestCall (new RestTask<ClientResponse> ()
 			{
 				@Override
 				protected ClientResponse call (WebResource resource)
 				{
 					return resource.path ("/transactions/" + value.getId ())
-					               .type (MediaType.APPLICATION_JSON)
-					               .accept (MediaType.APPLICATION_JSON)
-					               .put (ClientResponse.class, value);
+							.type (MediaType.APPLICATION_JSON)
+							.accept (MediaType.APPLICATION_JSON)
+							.put (ClientResponse.class, value);
 				}
 
 				@Override
@@ -267,7 +284,7 @@ public class MainController
 				}
 			});
 		}
-		catch (ValidationException e)
+		catch ( ValidationException e )
 		{
 			ErrorDialog.showError (e);
 		}
@@ -276,7 +293,7 @@ public class MainController
 	public void sendTransaction ()
 	{
 		final NewTransaction nt = new NewTransaction (address.get ().right ().get (),
-		                                              btc.get ().right ().get ());
+				btc.get ().right ().get ());
 
 		App.instance.restClient.submitRestCall (new RestTask<ClientResponse> ()
 		{
@@ -284,9 +301,9 @@ public class MainController
 			protected ClientResponse call (WebResource resource)
 			{
 				return resource.path ("/transactions")
-				               .type (MediaType.APPLICATION_JSON)
-				               .accept (MediaType.APPLICATION_JSON)
-				               .post (ClientResponse.class, nt);
+						.type (MediaType.APPLICATION_JSON)
+						.accept (MediaType.APPLICATION_JSON)
+						.post (ClientResponse.class, nt);
 			}
 
 			@Override
@@ -294,7 +311,7 @@ public class MainController
 			{
 				super.succeeded ();
 				ClientResponse response = getValue ();
-				if (response.getStatus () == 201)
+				if ( response.getStatus () == 201 )
 				{
 					txAdded (response.getLocation ());
 				}
@@ -305,6 +322,5 @@ public class MainController
 			}
 		});
 	}
-
 
 }
