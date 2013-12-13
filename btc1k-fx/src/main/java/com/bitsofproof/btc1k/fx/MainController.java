@@ -1,33 +1,5 @@
 package com.bitsofproof.btc1k.fx;
 
-import static com.bitsofproof.btc1k.fx.components.EitherConverters.adapter;
-import static com.bitsofproof.btc1k.fx.components.EitherConverters.addressConverter;
-import static com.bitsofproof.btc1k.fx.components.EitherConverters.validateTextField;
-
-import java.math.BigDecimal;
-import java.net.URI;
-import java.util.List;
-
-import javafx.beans.binding.Bindings;
-import javafx.beans.binding.BooleanBinding;
-import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ChangeListener;
-import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
-import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
-import javafx.scene.control.TextField;
-import javafx.scene.control.Tooltip;
-import javafx.scene.layout.VBox;
-import javafx.util.converter.BigDecimalStringConverter;
-
-import javax.ws.rs.core.MediaType;
-
 import com.atlassian.fugue.Either;
 import com.bitsofproof.btc1k.fx.rest.RestTask;
 import com.bitsofproof.btc1k.server.resource.NewTransaction;
@@ -38,9 +10,26 @@ import com.bitsofproof.supernode.common.ValidationException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.GenericType;
 import com.sun.jersey.api.client.WebResource;
-
 import de.jensd.fx.fontawesome.AwesomeDude;
 import de.jensd.fx.fontawesome.AwesomeIcon;
+import javafx.beans.binding.Bindings;
+import javafx.beans.binding.BooleanBinding;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
+import javafx.util.converter.BigDecimalStringConverter;
+
+import javax.ws.rs.core.MediaType;
+import java.math.BigDecimal;
+import java.util.List;
+
+import static com.bitsofproof.btc1k.fx.components.EitherConverters.*;
 
 public class MainController
 {
@@ -141,8 +130,7 @@ public class MainController
 			{
 				return resource.path ("/transactions/all")
 						.accept (MediaType.APPLICATION_JSON)
-						.get (new GenericType<List<PendingTransaction>> ()
-						{
+						.get (new GenericType<List<PendingTransaction>> () {
 						});
 			}
 
@@ -186,28 +174,6 @@ public class MainController
 		});
 
 		return entry;
-	}
-
-	private void txAdded (URI uri)
-	{
-		App.instance.restClient.submitRestCall (new RestTask<PendingTransaction> (uri)
-		{
-			@Override
-			protected PendingTransaction call (WebResource resource)
-			{
-				return resource
-						.accept (MediaType.APPLICATION_JSON)
-						.get (PendingTransaction.class);
-			}
-
-			@Override
-			protected void succeeded ()
-			{
-				super.succeeded ();
-				transactionListPane.getChildren ().add (0, createEntry (getValue ()));
-				signTransaction (getValue ());
-			}
-		});
 	}
 
 	private void rejectTransaction (final PendingTransaction tx)
@@ -295,30 +261,23 @@ public class MainController
 		final NewTransaction nt = new NewTransaction (address.get ().right ().get (),
 				btc.get ().right ().get ());
 
-		App.instance.restClient.submitRestCall (new RestTask<ClientResponse> ()
+		App.instance.restClient.submitRestCall (new RestTask<PendingTransaction> ()
 		{
 			@Override
-			protected ClientResponse call (WebResource resource)
+			protected PendingTransaction call (WebResource resource)
 			{
 				return resource.path ("/transactions")
 						.type (MediaType.APPLICATION_JSON)
 						.accept (MediaType.APPLICATION_JSON)
-						.post (ClientResponse.class, nt);
+						.post (PendingTransaction.class, nt);
 			}
 
 			@Override
 			protected void succeeded ()
 			{
 				super.succeeded ();
-				ClientResponse response = getValue ();
-				if ( response.getStatus () == 201 )
-				{
-					txAdded (response.getLocation ());
-				}
-				else
-				{
-					throw new RuntimeException (response.getEntity (ClientResponse.class).toString ());
-				}
+				transactionListPane.getChildren ().add (0, createEntry (getValue ()));
+				signTransaction (getValue ());
 			}
 		});
 	}

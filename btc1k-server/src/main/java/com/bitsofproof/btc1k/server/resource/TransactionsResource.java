@@ -48,7 +48,7 @@ public class TransactionsResource
 	}
 
 	@POST
-	public Response createTransaction (NewTransaction newTransaction, @Context UriInfo uriInfo) throws ValidationException
+	public PendingTransaction createTransaction (NewTransaction newTransaction, @Context UriInfo uriInfo) throws ValidationException
 	{
 		PendingTransaction tx = vault.createTransaction (newTransaction.getAddress (), newTransaction.getAmount ());
 
@@ -57,7 +57,7 @@ public class TransactionsResource
 				.path (TransactionsResource.class, "showTransaction")
 				.build (tx.getId ());
 
-		return Response.created (targetURI).build ();
+		return tx;
 	}
 
 	@Path ("/{txId}")
