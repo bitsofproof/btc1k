@@ -285,15 +285,21 @@ public class Vault
 		for ( TransactionInput input : transaction.getInputs () )
 		{
 			List<Token> tokens = ScriptFormat.parse (input.getScript ());
-			Iterator<String> it = publicKeys.keySet ().iterator ();
+			Iterator<Map.Entry<String, ECPublicKey>> it = publicKeys.entrySet ().iterator ();
 			for ( int i = 1; i < tokens.size () - 1; ++i )
 			{
 				if ( tokens.get (i).data != null )
 				{
-					String name = it.next ();
+					Map.Entry<String, ECPublicKey> e = it.next ();
+					String name = e.getKey ();
+					Key k = e.getValue ();
 					if ( tokens.get (i).op != ScriptFormat.Opcode.OP_FALSE )
 					{
-						names.add (name);
+						byte[] digest = BaseAccountManager.hashTransaction (transaction, 0, ScriptFormat.SIGHASH_ALL, getVaultScript ());
+						if ( k.verify (digest, tokens.get (i).data) )
+						{
+							names.add (name);
+						}
 					}
 				}
 			}
