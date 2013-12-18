@@ -3,7 +3,7 @@
 
 	<groupId>com.bitsofproof.btc1k</groupId>
 	<artifactId>btc1k</artifactId>
-	<version>1.4-SNAPSHOT</version>
+	<version>1.4</version>
 	<modules>
 		<module>btc1k-server</module>
 		<module>btc1k-fx</module>
@@ -17,7 +17,7 @@
 
 	<scm>
 		<developerConnection>scm:git:git@git.bitsofproof.com:btc1k.git</developerConnection>
-		<tag>HEAD</tag>
+		<tag>1.4</tag>
 	</scm>
 
 	<distributionManagement>
