@@ -51,7 +51,7 @@
 		</dependency>
 		<dependency>
 			<groupId>com.bitsofproof.dropwizard</groupId>
-			<artifactId>supernode-dropwizard</artifactId>
+			<artifactId>bop-dropwizard</artifactId>
 		</dependency>
 
 		<dependency>
