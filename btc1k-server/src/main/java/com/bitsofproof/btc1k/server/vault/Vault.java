@@ -88,7 +88,7 @@ public class Vault
 		{
 			if ( super.updateWithTransaction (t) )
 			{
-				log.info ("Vault updated with transaction " + t.getHash ());
+				log.info ("Vault updated with transaction " + t.getHash () + " balance " + getBalance ());
 				return true;
 			}
 			return false;
