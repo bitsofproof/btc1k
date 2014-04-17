@@ -51,7 +51,6 @@ import com.bitsofproof.supernode.common.ExtendedKey;
 import com.bitsofproof.supernode.common.Key;
 import com.bitsofproof.supernode.common.ScriptFormat;
 import com.bitsofproof.supernode.common.ValidationException;
-import com.bitsofproof.supernode.wallet.BaseAccountManager;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -151,7 +150,7 @@ public class BopShopResource
 		{
 			ScriptFormat.Writer sw = new ScriptFormat.Writer ();
 			byte[] sig =
-					key.sign (BaseAccountManager.hashTransaction (transaction, i++, ScriptFormat.SIGHASH_ALL, incomingAddress.getAddressScript ()));
+					key.sign (transaction.hashTransaction (i++, ScriptFormat.SIGHASH_ALL, incomingAddress.getAddressScript ()));
 			byte[] sigPlusType = new byte[sig.length + 1];
 			System.arraycopy (sig, 0, sigPlusType, 0, sig.length);
 			sigPlusType[sigPlusType.length - 1] = (byte) (ScriptFormat.SIGHASH_ALL & 0xff);

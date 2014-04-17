@@ -19,9 +19,11 @@ import java.math.BigDecimal;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 import java.util.UUID;
 
@@ -31,12 +33,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.bitsofproof.btc1k.server.resource.NamedKey;
+import com.bitsofproof.supernode.account.AccountListener;
+import com.bitsofproof.supernode.account.AccountManager;
+import com.bitsofproof.supernode.account.BaseTransactionFactory;
+import com.bitsofproof.supernode.account.TransactionSource;
 import com.bitsofproof.supernode.api.Address;
 import com.bitsofproof.supernode.api.BCSAPI;
 import com.bitsofproof.supernode.api.BCSAPIException;
 import com.bitsofproof.supernode.api.Transaction;
 import com.bitsofproof.supernode.api.TransactionInput;
+import com.bitsofproof.supernode.api.TransactionListener;
 import com.bitsofproof.supernode.api.TransactionOutput;
+import com.bitsofproof.supernode.common.BloomFilter.UpdateMode;
 import com.bitsofproof.supernode.common.ECKeyPair;
 import com.bitsofproof.supernode.common.ECPublicKey;
 import com.bitsofproof.supernode.common.ExtendedKey;
@@ -45,11 +53,7 @@ import com.bitsofproof.supernode.common.Key;
 import com.bitsofproof.supernode.common.ScriptFormat;
 import com.bitsofproof.supernode.common.ScriptFormat.Token;
 import com.bitsofproof.supernode.common.ValidationException;
-import com.bitsofproof.supernode.wallet.AccountListener;
-import com.bitsofproof.supernode.wallet.AccountManager;
-import com.bitsofproof.supernode.wallet.AddressListAccountManager;
-import com.bitsofproof.supernode.wallet.BIP39;
-import com.bitsofproof.supernode.wallet.BaseAccountManager;
+import com.bitsofproof.supernode.misc.BIP39;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
 
@@ -57,23 +61,26 @@ public class Vault
 {
 	private static final Logger log = LoggerFactory.getLogger (Vault.class);
 
-	public class AM extends AddressListAccountManager
+	public class AM extends BaseTransactionFactory
 	{
 		@Override
-		protected void spendNonAddressOutput (int ix, TransactionOutput source, ScriptFormat.Writer sw, Transaction transaction) throws ValidationException
+		protected TransactionSource createTransactionSource (TransactionOutput output)
 		{
-			sw.writeData (new byte[0]);
-			for ( int i = 0; i < publicKeys.size (); ++i )
+			return new TransactionSource (output, this)
 			{
-				sw.writeData (new byte[0]);
-			}
-			sw.writeData (getVaultScript ());
-		}
-
-		@Override
-		public Address getNextAddress () throws ValidationException
-		{
-			return getVaultAddress ();
+				@Override
+				protected byte[] spend (int ix, Transaction transaction) throws ValidationException
+				{
+					ScriptFormat.Writer sw = new ScriptFormat.Writer ();
+					sw.writeData (new byte[0]);
+					for ( int i = 0; i < publicKeys.size (); ++i )
+					{
+						sw.writeData (new byte[0]);
+					}
+					sw.writeData (getVaultScript ());
+					return sw.toByteArray ();
+				}
+			};
 		}
 
 		@Override
@@ -85,6 +92,79 @@ public class Vault
 				return true;
 			}
 			return false;
+		}
+
+		@Override
+		public Key getKeyForAddress (Address address)
+		{
+			return null;
+		}
+
+		@Override
+		public void sync (BCSAPI api) throws BCSAPIException
+		{
+			reset ();
+			api.scanUTXOForAddresses (getAddresses (), UpdateMode.all, getCreated (), new TransactionListener ()
+			{
+				@Override
+				public boolean process (Transaction t)
+				{
+					return updateWithTransaction (t);
+				}
+			});
+		}
+
+		@Override
+		public void syncHistory (BCSAPI api) throws BCSAPIException
+		{
+			reset ();
+			api.scanTransactionsForAddresses (getAddresses (), UpdateMode.all, getCreated (), new TransactionListener ()
+			{
+				@Override
+				public boolean process (Transaction t)
+				{
+					return updateWithTransaction (t);
+				}
+			});
+		}
+
+		@Override
+		public boolean isOwnAddress (Address address)
+		{
+			try
+			{
+				return address.equals (getVaultAddress ());
+			}
+			catch ( ValidationException e )
+			{
+				return false;
+			}
+		}
+
+		@Override
+		public Set<Address> getAddresses ()
+		{
+			Set<Address> as = new HashSet<Address> ();
+			try
+			{
+				as.add (getVaultAddress ());
+			}
+			catch ( ValidationException e )
+			{
+			}
+			return as;
+		}
+
+		@Override
+		public Address getNextChangeAddress () throws ValidationException
+		{
+			return getVaultAddress ();
+		}
+
+		@Override
+		public Address getNextReceiverAddress () throws ValidationException
+		{
+			return getVaultAddress ();
 		}
 
 	}
@@ -121,7 +201,6 @@ public class Vault
 		}
 		log.info ("Vault address: " + getVaultAddress ());
 		this.accountManager = new AM ();
-		accountManager.addAddress (getVaultAddress ());
 		accountManager.setCreated (new DateTime (2013, 12, 1, 0, 0).getMillis ());
 		accountManager.addAccountListener (new AccountListener ()
 		{
@@ -232,7 +311,7 @@ public class Vault
 			List<Token> tokens = ScriptFormat.parse (input.getScript ());
 
 			byte[] sig =
-					key.sign (BaseAccountManager.hashTransaction (transaction, i++, ScriptFormat.SIGHASH_ALL, getVaultScript ()));
+					key.sign (transaction.hashTransaction (i++, ScriptFormat.SIGHASH_ALL, getVaultScript ()));
 			byte[] sigPlusType = new byte[sig.length + 1];
 			System.arraycopy (sig, 0, sigPlusType, 0, sig.length);
 			sigPlusType[sigPlusType.length - 1] = (byte) (ScriptFormat.SIGHASH_ALL & 0xff);
@@ -295,7 +374,7 @@ public class Vault
 					Key k = e.getValue ();
 					if ( tokens.get (i).op != ScriptFormat.Opcode.OP_FALSE )
 					{
-						byte[] digest = BaseAccountManager.hashTransaction (transaction, 0, ScriptFormat.SIGHASH_ALL, getVaultScript ());
+						byte[] digest = transaction.hashTransaction (0, ScriptFormat.SIGHASH_ALL, getVaultScript ());
 						if ( k.verify (digest, tokens.get (i).data) )
 						{
 							names.add (name);

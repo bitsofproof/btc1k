@@ -66,12 +66,19 @@
 		</dependency>
 		<dependency>
 			<groupId>com.bitsofproof</groupId>
-			<artifactId>bitsofproof-server-api</artifactId>
+			<artifactId>bop-bitcoin-client-api</artifactId>
 		</dependency>
-
+		<dependency>
+			<groupId>com.bitsofproof</groupId>
+			<artifactId>bop-bitcoin-client-account</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.bitsofproof</groupId>
+			<artifactId>bop-bitcoin-client-misc</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.bitsofproof.dropwizard</groupId>
-			<artifactId>supernode-dropwizard</artifactId>
+			<artifactId>bop-dropwizard</artifactId>
 		</dependency>
 
 

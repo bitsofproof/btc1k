@@ -19,7 +19,6 @@ import io.dropwizard.Application;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
-import java.math.BigDecimal;
 import java.security.Security;
 
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
@@ -31,11 +30,8 @@ import com.bitsofproof.btc1k.server.resource.BopShopResource;
 import com.bitsofproof.btc1k.server.vault.Vault;
 import com.bitsofproof.dropwizard.supernode.SupernodeBundle;
 import com.bitsofproof.dropwizard.supernode.SupernodeConfiguration;
+import com.bitsofproof.supernode.account.ConfirmationManager;
 import com.bitsofproof.supernode.api.BCSAPI;
-import com.bitsofproof.supernode.api.BCSAPIException;
-import com.bitsofproof.supernode.api.Transaction;
-import com.bitsofproof.supernode.api.TransactionOutput;
-import com.bitsofproof.supernode.common.ValidationException;
 
 public class Btc1kApplication extends Application<Btc1kConfiguration>
 {
@@ -69,8 +65,13 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 	public void run (Btc1kConfiguration configuration, Environment environment) throws Exception
 	{
 		BCSAPI api = supernodeBundle.getBCSAPI ();
+		ConfirmationManager confirmationManager = new ConfirmationManager ();
+		confirmationManager.init (api, 144);
+		api.registerTrunkListener (confirmationManager);
 		vault = configuration.getVaultFactory ().createVault ();
 		vault.getAccountManager ().sync (api);
+		confirmationManager.addAccount (vault.getAccountManager ());
+		api.registerRejectListener (vault.getAccountManager ());
 		api.registerTransactionListener (vault.getAccountManager ());
 		System.out.println ("Vault " + vault.getVaultAddress ());
 		environment.jersey ().register (new BopShopResource (
@@ -80,31 +81,5 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 				configuration.getCustomerId (),
 				configuration.getPassphrase ()
 				).processCleared ());
-
-		if ( supernodeBundle.getBox () != null )
-		{
-			fundVaultForTesting ();
-		}
-	}
-
-	private void fundVaultForTesting () throws ValidationException, BCSAPIException, InterruptedException
-	{
-		Helper h = new Helper (supernodeBundle.getBox (), vault);
-		h.fundVault (BigDecimal.valueOf (20));
-
-		Thread.sleep (1000);
-		log.info ("Start synchronizing account manager. This might take a while");
-		// vault.syncHistory (api);
-
-		log.info ("Querying account manager transactions {}", vault.getBalance ());
-		for ( Transaction tx : vault.getAccountManager ().getTransactions () )
-		{
-			tx.computeHash ();
-			log.info ("    tx {}", tx.getHash ());
-			for ( TransactionOutput output : tx.getOutputs () )
-			{
-				log.info ("        {}", output.getValue ());
-			}
-		}
 	}
 }
