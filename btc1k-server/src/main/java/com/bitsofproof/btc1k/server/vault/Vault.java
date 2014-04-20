@@ -44,7 +44,6 @@ import com.bitsofproof.supernode.api.Transaction;
 import com.bitsofproof.supernode.api.TransactionInput;
 import com.bitsofproof.supernode.api.TransactionListener;
 import com.bitsofproof.supernode.api.TransactionOutput;
-import com.bitsofproof.supernode.common.BloomFilter.UpdateMode;
 import com.bitsofproof.supernode.common.ECKeyPair;
 import com.bitsofproof.supernode.common.ECPublicKey;
 import com.bitsofproof.supernode.common.ExtendedKey;
@@ -104,7 +103,7 @@ public class Vault
 		public void sync (BCSAPI api) throws BCSAPIException
 		{
 			reset ();
-			api.scanUTXOForAddresses (getAddresses (), UpdateMode.all, getCreated (), new TransactionListener ()
+			api.scanUTXOForAddresses (getAddresses (), new TransactionListener ()
 			{
 				@Override
 				public boolean process (Transaction t)
@@ -118,7 +117,7 @@ public class Vault
 		public void syncHistory (BCSAPI api) throws BCSAPIException
 		{
 			reset ();
-			api.scanTransactionsForAddresses (getAddresses (), UpdateMode.all, getCreated (), new TransactionListener ()
+			api.scanTransactionsForAddresses (getAddresses (), getCreated (), new TransactionListener ()
 			{
 				@Override
 				public boolean process (Transaction t)

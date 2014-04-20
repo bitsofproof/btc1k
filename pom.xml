@@ -47,8 +47,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<slf4j.version>1.7.5</slf4j.version>
-		<supernode.version>3.4.3</supernode.version>
-		<supernode.dropwizard.version>3.4.4</supernode.dropwizard.version>
+		<supernode.version>3.4.4-SNAPSHOT</supernode.version>
+		<supernode.dropwizard.version>3.4.5-SNAPSHOT</supernode.dropwizard.version>
 		<junit.version>4.11</junit.version>
 		<jodatime.version>2.3</jodatime.version>
 		<jackson.version>2.3.0</jackson.version>
