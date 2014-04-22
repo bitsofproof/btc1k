@@ -78,6 +78,16 @@
 				<groupId>com.bitsofproof.dropwizard</groupId>
 				<artifactId>bop-dropwizard</artifactId>
 				<version>${supernode.dropwizard.version}</version>
+				<exclusions>
+					<exclusion>
+						<groupId>com.bitsofproof</groupId>
+						<artifactId>bop-bitcoin-server-api</artifactId>
+					</exclusion>
+					<exclusion>
+						<groupId>com.bitsofproof</groupId>
+						<artifactId>bop-bitcoin-server-api-jms</artifactId>
+					</exclusion>
+				</exclusions>
 			</dependency>
 
 			<dependency>
