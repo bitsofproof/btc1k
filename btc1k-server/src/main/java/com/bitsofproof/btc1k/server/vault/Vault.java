@@ -36,6 +36,7 @@ import com.bitsofproof.btc1k.server.resource.NamedKey;
 import com.bitsofproof.supernode.account.AccountListener;
 import com.bitsofproof.supernode.account.AccountManager;
 import com.bitsofproof.supernode.account.BaseTransactionFactory;
+import com.bitsofproof.supernode.account.PaymentOptions;
 import com.bitsofproof.supernode.account.TransactionSource;
 import com.bitsofproof.supernode.api.Address;
 import com.bitsofproof.supernode.api.BCSAPI;
@@ -227,7 +228,7 @@ public class Vault
 	public PendingTransaction createTransaction (Address targetAddress, BigDecimal btcAmount) throws ValidationException
 	{
 		log.info ("Create transaction to pay " + btcAmount + " BTC to " + targetAddress + " vault has " + fromSatoshi (accountManager.getBalance ()));
-		Transaction tx = accountManager.pay (targetAddress, toSatoshi (btcAmount), true);
+		Transaction tx = accountManager.pay (targetAddress, toSatoshi (btcAmount), PaymentOptions.receiverPaysFee);
 		PendingTransaction pendingTransaction = new PendingTransaction (tx, btcAmount, targetAddress, "");
 		return pendingTransaction;
 	}

@@ -21,7 +21,7 @@ import java.util.Map;
 
 import com.bitsofproof.btc1k.server.vault.Vault;
 import com.bitsofproof.dropwizard.supernode.SupernodeConfiguration;
-import com.bitsofproof.dropwizard.supernode.activemq.SupernodeConfigurationImpl;
+import com.bitsofproof.dropwizard.supernode.activemq.JMSConnectedSupernode;
 import com.bitsofproof.supernode.api.BCSAPIException;
 import com.bitsofproof.supernode.common.ExtendedKey;
 import com.bitsofproof.supernode.common.ValidationException;
@@ -51,7 +51,7 @@ public class Btc1kConfiguration extends Configuration
 	}
 
 	@JsonProperty
-	SupernodeConfigurationImpl supernode;
+	JMSConnectedSupernode supernode;
 
 	@JsonProperty ("vault")
 	VaultConfiguration vaultFactory;
