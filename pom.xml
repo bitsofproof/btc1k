@@ -3,7 +3,7 @@
 
 	<groupId>com.bitsofproof.btc1k</groupId>
 	<artifactId>btc1k</artifactId>
-	<version>1.5</version>
+	<version>1.6</version>
 	<modules>
 		<module>btc1k-server</module>
 		<module>btc1k-fx</module>
@@ -46,13 +46,13 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<slf4j.version>1.7.5</slf4j.version>
-		<supernode.version>3.4.4</supernode.version>
-		<supernode.dropwizard.version>3.4.5</supernode.dropwizard.version>
+		<slf4j.version>1.7.7</slf4j.version>
+		<supernode.version>3.5.3</supernode.version>
+		<supernode.dropwizard.version>3.6.0</supernode.dropwizard.version>
 		<junit.version>4.11</junit.version>
 		<jodatime.version>2.3</jodatime.version>
 		<jackson.version>2.3.0</jackson.version>
-		<dropwizard.version>0.7.0-rc1</dropwizard.version>
+		<dropwizard.version>0.7.0</dropwizard.version>
 		<guava.version>15.0</guava.version>
 		<jersey.version>1.18</jersey.version>
 	</properties>
