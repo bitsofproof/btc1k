@@ -47,8 +47,6 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 		}
 	};
 
-	private Vault vault;
-
 	public static void main (String[] args) throws Exception
 	{
 		Security.addProvider (new BouncyCastleProvider ());
@@ -66,7 +64,8 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 	public void run (Btc1kConfiguration configuration, Environment environment) throws Exception
 	{
 		BCSAPI api = supernodeBundle.getBCSAPI ();
-		environment.lifecycle ().manage (new Btc1kService (api, configuration.getVaultFactory ().createVault ()));
+		Vault vault = configuration.getVaultFactory ().createVault ();
+		environment.lifecycle ().manage (new Btc1kService (api, vault));
 		environment.jersey ().register (new BopShopResource (
 				supernodeBundle.getBCSAPI (),
 				vault,
