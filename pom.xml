@@ -75,6 +75,11 @@
 				<version>${supernode.version}</version>
 			</dependency>
 			<dependency>
+				<groupId>com.bitsofproof</groupId>
+				<artifactId>bop-bitcoin-client-jms</artifactId>
+				<version>${supernode.version}</version>
+			</dependency>
+			<dependency>
 				<groupId>com.bitsofproof.dropwizard</groupId>
 				<artifactId>bop-dropwizard</artifactId>
 				<version>${supernode.dropwizard.version}</version>
