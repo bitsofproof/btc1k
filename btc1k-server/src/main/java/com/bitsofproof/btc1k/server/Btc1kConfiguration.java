@@ -51,7 +51,7 @@ public class Btc1kConfiguration extends Configuration
 	}
 
 	@JsonProperty
-	JMSConnectedSupernode supernode;
+	JMSConnectedSupernode externalServer;
 
 	@JsonProperty ("vault")
 	VaultConfiguration vaultFactory;
@@ -84,7 +84,7 @@ public class Btc1kConfiguration extends Configuration
 
 	public SupernodeConfiguration getSupernode ()
 	{
-		return supernode;
+		return externalServer;
 	}
 
 }
