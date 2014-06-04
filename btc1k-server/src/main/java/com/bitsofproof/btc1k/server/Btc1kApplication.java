@@ -16,6 +16,7 @@
 package com.bitsofproof.btc1k.server;
 
 import io.dropwizard.Application;
+import io.dropwizard.lifecycle.Managed;
 import io.dropwizard.setup.Bootstrap;
 import io.dropwizard.setup.Environment;
 
@@ -65,15 +66,7 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 	public void run (Btc1kConfiguration configuration, Environment environment) throws Exception
 	{
 		BCSAPI api = supernodeBundle.getBCSAPI ();
-		ConfirmationManager confirmationManager = new ConfirmationManager ();
-		confirmationManager.init (api, 144);
-		api.registerTrunkListener (confirmationManager);
-		vault = configuration.getVaultFactory ().createVault ();
-		vault.getAccountManager ().sync (api);
-		confirmationManager.addAccount (vault.getAccountManager ());
-		api.registerRejectListener (vault.getAccountManager ());
-		api.registerTransactionListener (vault.getAccountManager ());
-		System.out.println ("Vault " + vault.getVaultAddress ());
+		environment.lifecycle ().manage (new Btc1kService (api, configuration.getVaultFactory ().createVault ()));
 		environment.jersey ().register (new BopShopResource (
 				supernodeBundle.getBCSAPI (),
 				vault,
@@ -81,5 +74,35 @@ public class Btc1kApplication extends Application<Btc1kConfiguration>
 				configuration.getCustomerId (),
 				configuration.getPassphrase ()
 				).processCleared ());
+	}
+
+	private static class Btc1kService implements Managed
+	{
+		private ConfirmationManager confirmationManager = new ConfirmationManager ();
+		private BCSAPI api;
+		private Vault vault;
+
+		private Btc1kService (BCSAPI api, Vault vault)
+		{
+			this.api = api;
+			this.vault = vault;
+		}
+
+		@Override
+		public void start () throws Exception
+		{
+			confirmationManager.init (api, 100);
+			api.registerTrunkListener (confirmationManager);
+			vault.getAccountManager ().sync (api);
+			confirmationManager.addAccount (vault.getAccountManager ());
+			api.registerRejectListener (vault.getAccountManager ());
+			api.registerTransactionListener (vault.getAccountManager ());
+			System.out.println ("Vault " + vault.getVaultAddress ());
+		}
+
+		@Override
+		public void stop () throws Exception
+		{
+		}
 	}
 }
